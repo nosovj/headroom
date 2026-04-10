@@ -2457,13 +2457,20 @@ class HeadroomProxy:
                     # Cache newly compressed messages (index-aligned diff)
                     if result.messages != working_messages:
                         comp_cache.update_from_result(messages, result.messages)
+                        logger.info(
+                            "[%s] DEBUG: result.messages != working_messages, "
+                            "result.transforms_applied=%s, result.tokens_before=%d, result.tokens_after=%d",
+                            request_id,
+                            result.transforms_applied,
+                            result.tokens_before,
+                            result.tokens_after,
+                        )
 
                     # Always use pipeline result — Zone 1 swaps are already applied
                     optimized_messages = result.messages
-                    # Only update transforms if messages were actually modified by compression
-                    # (not just from Zone 1 cache swaps which don't count as compression)
-                    if result.messages != working_messages:
-                        transforms_applied = result.transforms_applied
+                    # Always use result.transforms_applied - it contains all transforms
+                    # including read_lifecycle, router, etc. from the pipeline
+                    transforms_applied = result.transforms_applied
                     pipeline_timing = result.timing
                     # Keep original_tokens as the REAL original (pre-Zone-1-swap)
                     # so tokens_saved captures both Zone 1 + Zone 2 savings.

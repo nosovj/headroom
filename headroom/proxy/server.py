@@ -2421,6 +2421,12 @@ class HeadroomProxy:
                     # Zone 1: Swap cached compressed versions into working copy
                     working_messages = comp_cache.apply_cached(messages)
 
+                    # DEBUG: Count how many cache hits happened in Zone 1
+                    zone1_cache_hits = sum(
+                        1 for i, (orig, work) in enumerate(zip(messages, working_messages))
+                        if orig != work
+                    )
+
                     # Re-freeze boundary: consecutive stable messages from start
                     frozen_message_count = comp_cache.compute_frozen_count(messages)
 
@@ -2437,6 +2443,15 @@ class HeadroomProxy:
                             )
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
+                    )
+
+                    # DEBUG: Log Zone 1 cache hits
+                    logger.info(
+                        "[%s] Zone 1: cache_hits=%d, messages=%d, working_messages=%d",
+                        request_id,
+                        zone1_cache_hits,
+                        len(messages),
+                        len(working_messages),
                     )
 
                     # Cache newly compressed messages (index-aligned diff)

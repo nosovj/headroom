@@ -206,7 +206,18 @@ class CompressionCache:
         return False
 
     def put(self, key: int, compressed: str, ratio: float, strategy: str) -> None:
-        """Store a compressed result (Tier 2)."""
+        """Store a compressed result (Tier 2).
+
+        NOTE: Rejects inflations (ratio >= 1.0). We only cache content
+        that actually compresses.
+        """
+        if ratio >= 1.0:
+            logger.debug(
+                "put: rejecting inflation (key=%d, ratio=%.2f)",
+                key,
+                ratio,
+            )
+            return
         self._results[key] = (compressed, ratio, strategy, time.time())
 
     def mark_skip(self, key: int) -> None:
@@ -1898,6 +1909,29 @@ class ContentRouter(Transform):
         tokens_after = sum(
             tokenizer.count_text(str(m.get("content", ""))) for m in transformed_messages
         )
+
+        # DEBUG: Log if tokens_inflated (shouldn't happen if caching correctly)
+        if tokens_after > tokens_before:
+            logger.warning(
+                "content_router: INFLATION DETECTED! tokens_before=%d, tokens_after=%d, "
+                "delta=+%d, num_msgs=%d->%d, pending=%d, route_counts=%s",
+                tokens_before,
+                tokens_after,
+                tokens_after - tokens_before,
+                len(messages),
+                len(transformed_messages),
+                len(pending_tasks),
+                route_counts,
+            )
+        else:
+            logger.debug(
+                "content_router: %d msgs, tokens_before=%d, tokens_after=%d, saved=%d, pending=%d",
+                num_messages,
+                tokens_before,
+                tokens_after,
+                tokens_before - tokens_after,
+                len(pending_tasks),
+            )
 
         # Log routing summary
         parts = []

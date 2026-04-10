@@ -102,7 +102,20 @@ class CompressionCache:
         If the hash already exists, the entry is overwritten and moved to the
         end (most recently used). When the cache exceeds max_entries, the oldest
         entry is evicted.
+
+        NOTE: Only stores if tokens_saved > 0 (actual compression).
+        Inflations (tokens_saved < 0) are rejected — we don't cache content
+        that makes things worse.
         """
+        # Reject inflations — don't cache content that makes things worse
+        if tokens_saved < 0:
+            logger.debug(
+                "store_compressed: rejecting inflation (hash=%s, tokens_saved=%d)",
+                hash,
+                tokens_saved,
+            )
+            return
+
         if hash in self._cache:
             old_entry = self._cache[hash]
             self._total_tokens_saved -= old_entry.tokens_saved
@@ -203,4 +216,6 @@ class CompressionCache:
                 continue
             h = self.content_hash(orig_content)
             tokens_saved = len(orig_content) // 4 - len(comp_content) // 4
-            self.store_compressed(h, comp_content, tokens_saved=max(tokens_saved, 0))
+            # Pass actual tokens_saved (can be negative for inflations)
+            # store_compressed will reject inflations (tokens_saved < 0)
+            self.store_compressed(h, comp_content, tokens_saved)

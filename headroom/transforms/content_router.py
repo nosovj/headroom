@@ -1045,7 +1045,14 @@ class ContentRouter(Transform):
                         )
 
             elif strategy == CompressionStrategy.LOG:
-                if self.config.enable_log_compressor:
+                # Fast path: Try Rust zstd compression first (sub-ms)
+                # Falls back to LogCompressor if Rust ratio is poor
+                rust_result = self._try_rust_compressor(content)
+                if rust_result[0] != content:
+                    # Rust provided compression, use it
+                    compressed, compressed_tokens = rust_result
+                elif self.config.enable_log_compressor:
+                    # Rust returned passthrough, try LogCompressor
                     compressor = self._get_log_compressor()
                     if compressor:
                         result = compressor.compress(content, bias=bias)

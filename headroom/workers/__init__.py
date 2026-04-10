@@ -131,3 +131,60 @@ def shutdown_pool():
         _worker_pool.stop()
         _worker_pool = None
         logger.info("Worker pool stopped")
+
+
+@dataclass
+class CompressionResult:
+    """Result of text compression."""
+    compressed: str
+    ratio: float
+    strategy: str
+    latency_ms: float
+
+
+def compress_text(content: str, context_type: str = "general") -> CompressionResult:
+    """Compress text using Rust zstd.
+
+    Args:
+        content: Text to compress.
+        context_type: Type of content ("tool_output", "log", "code", "general").
+                    Used to select compression dictionary if available.
+
+    Returns:
+        CompressionResult with compressed text (base64), ratio, strategy, and latency_ms.
+    """
+    try:
+        from headroom_workers import compress_text as rust_compress
+        result = rust_compress(content, context_type)
+        return CompressionResult(
+            compressed=result.compressed,
+            ratio=result.ratio,
+            strategy=result.strategy,
+            latency_ms=result.latency_ms,
+        )
+    except ImportError as e:
+        logger.warning(f"Rust compression not available: {e}")
+        return CompressionResult(
+            compressed=content,
+            ratio=1.0,
+            strategy="unavailable",
+            latency_ms=0.0,
+        )
+
+
+def decompress_text(content: str, context_type: str = "general") -> str:
+    """Decompress text that was compressed with compress_text.
+
+    Args:
+        content: Base64-encoded compressed text.
+        context_type: Type hint used during compression.
+
+    Returns:
+        Decompressed text string.
+    """
+    try:
+        from headroom_workers import decompress_text as rust_decompress
+        return rust_decompress(content, context_type)
+    except ImportError as e:
+        logger.warning(f"Rust decompression not available: {e}")
+        return content

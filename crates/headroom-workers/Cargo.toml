@@ -17,6 +17,8 @@ anyhow = "1.0"
 thiserror = "1.0"
 num_cpus = "1.16"
 futures = "0.3"
+zstd = "0.13"
+base64 = "0.22"
 
 [profile.release]
 lto = true

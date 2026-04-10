@@ -385,6 +385,9 @@ pub fn headroom_workers(_: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<Pong>()?;
     m.add_function(wrap_pyfunction!(create_pool, m)?)?;
     m.add_function(wrap_pyfunction!(get_default_pool_size, m)?)?;
+    m.add_function(wrap_pyfunction!(compress_text, m)?)?;
+    m.add_function(wrap_pyfunction!(decompress_text, m)?)?;
+    m.add_class::<CompressionResult>()?;
     Ok(())
 }
 
@@ -398,4 +401,100 @@ pub fn create_pool(pool_size: Option<usize>) -> PyResult<PyWorkerPool> {
 #[pyfunction]
 pub fn get_default_pool_size() -> usize {
     num_cpus::get()
+}
+
+// =============================================================================
+// Text Compression
+// =============================================================================
+
+use std::time::Instant;
+
+/// Compression result returned to Python.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[pyclass(module = "headroom_workers")]
+pub struct CompressionResult {
+    #[pyo3(get, set)]
+    pub compressed: String,
+    #[pyo3(get, set)]
+    pub ratio: f32,
+    #[pyo3(get, set)]
+    pub strategy: String,
+    #[pyo3(get, set)]
+    pub latency_ms: f32,
+}
+
+/// Compress text using zstd.
+///
+/// This function is designed to be called from Python via PyO3.
+/// It runs in a blocking thread to release the GIL.
+///
+/// # Arguments
+/// * `content` - The text to compress
+/// * `context_type` - Type hint for compression ("tool_output", "log", "code", "general")
+///
+/// # Returns
+/// CompressionResult with compressed text, ratio, strategy used, and latency
+#[pyfunction]
+pub fn compress_text(content: &str, context_type: &str) -> CompressionResult {
+    let start = Instant::now();
+
+    // Fast path: if content is very short or looks already compressed, skip
+    if content.len() < 50 || content.contains("\x00") {
+        return CompressionResult {
+            compressed: content.to_string(),
+            ratio: 1.0,
+            strategy: "passthrough".to_string(),
+            latency_ms: (start.elapsed().as_nanos() as f32) / 1_000_000.0,
+        };
+    }
+
+    // Use zstd compression with default level
+    // Level 1 is fastest (545 MB/s) with good ratio (2.4)
+    let compressed = match zstd::encode_all(content.as_bytes(), 1) {
+        Ok(c) => c,
+        Err(_) => {
+            return CompressionResult {
+                compressed: content.to_string(),
+                ratio: 1.0,
+                strategy: "passthrough".to_string(),
+                latency_ms: (start.elapsed().as_nanos() as f32) / 1_000_000.0,
+            }
+        }
+    };
+
+    // Calculate ratio (lower is better compression)
+    let ratio = compressed.len() as f32 / content.len().max(1) as f32;
+
+    // If compression made it bigger or didn't help much, use passthrough
+    if ratio >= 0.95 {
+        return CompressionResult {
+            compressed: content.to_string(),
+            ratio: 1.0,
+            strategy: "passthrough".to_string(),
+            latency_ms: (start.elapsed().as_nanos() as f32) / 1_000_000.0,
+        };
+    }
+
+    // Encode compressed bytes to base64 for Python compatibility
+    use base64::Engine;
+    let base64_encoded = base64::engine::general_purpose::STANDARD.encode(&compressed);
+
+    CompressionResult {
+        compressed: base64_encoded,
+        ratio,
+        strategy: format!("rust_zstd_{}", context_type),
+        latency_ms: (start.elapsed().as_nanos() as f32) / 1_000_000.0,
+    }
+}
+
+/// Decompress text that was compressed with compress_text.
+#[pyfunction]
+pub fn decompress_text(content: &str, _context_type: &str) -> PyResult<String> {
+    // Decode from base64
+    let decoded = base64::decode(content).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+    // Decode zstd
+    let decompressed = zstd::decode_all(decoded.as_slice()).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+
+    String::from_utf8(decompressed).map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
 }

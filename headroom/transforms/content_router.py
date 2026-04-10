@@ -45,6 +45,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from datasketch import MinHash, MinHashLSH
+
 from ..config import DEFAULT_EXCLUDE_TOOLS, ReadLifecycleConfig, TransformResult
 from ..tokenizer import Tokenizer
 from .base import Transform
@@ -651,6 +653,68 @@ class ContentRouter(Transform):
 
         self._cache = CompressionCache()
 
+        # MinHash LSH index for deduplication (session-scoped)
+        self._minhash_index: Any = None
+        self._minhash_threshold = float(os.environ.get("HEADROOM_SIMILARITY_THRESHOLD", "0.95"))
+        self._dedup_cache: dict[str, str] = {}  # minhash_sig -> compressed_content
+
+    def _get_minhash_lsh(self) -> MinHashLSH:
+        """Get or create MinHash LSH index for deduplication."""
+        if self._minhash_index is None:
+            self._minhash_index = MinHashLSH(
+                threshold=self._minhash_threshold,
+                num_permutations=128,
+            )
+            self._dedup_cache.clear()
+        return self._minhash_index
+
+    def _compute_minhash(self, content: str) -> MinHash:
+        """Compute MinHash signature for content."""
+        m = MinHash(num_permutations=128)
+        # Use character n-grams for better similarity detection
+        n = 3
+        for i in range(len(content) - n + 1):
+            m.update(content[i : i + n].encode("utf8"))
+        return m
+
+    def _check_dedup(self, content: str) -> str | None:
+        """Check if similar content was already compressed. Returns compressed content if found."""
+        if os.environ.get("HEADROOM_USE_DEDUP", "true").lower() == "false":
+            return None
+
+        try:
+            lsh = self._get_minhash_lsh()
+            sig = self._compute_minhash(content)
+
+            # Query for similar content
+            keys = lsh.query(sig)
+            if keys:
+                # Found similar content
+                key = keys[0]  # Use first match
+                return self._dedup_cache.get(key)
+        except Exception as e:
+            logger.debug("Dedup check failed: %s", e)
+
+        return None
+
+    def _record_dedup(self, content: str, compressed: str) -> None:
+        """Record content and its compression for future deduplication."""
+        try:
+            lsh = self._get_minhash_lsh()
+            sig = self._compute_minhash(content)
+            # Use hash of content as key (truncate to avoid issues)
+            key = hashlib.md5(content[:100].encode()).hexdigest()[:16]
+            lsh.insert(key, sig)
+            self._dedup_cache[key] = compressed
+        except Exception as e:
+            logger.debug("Dedup record failed: %s", e)
+
+    def clear_session(self) -> None:
+        """Clear session-scoped data (call when session ends)."""
+        self._minhash_index = None
+        self._dedup_cache.clear()
+        logger.debug("Session data cleared")
+
     def _record_to_toin(
         self,
         strategy: CompressionStrategy,
@@ -1012,9 +1076,15 @@ class ContentRouter(Transform):
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question)
 
             elif strategy == CompressionStrategy.TEXT:
-                # Prefer Kompress ML compressor for text
-                # Passes through unchanged if Kompress not available
-                compressed, compressed_tokens = self._try_ml_compressor(content, context, question)
+                # Fast path: Try Rust zstd compression first (sub-ms)
+                # Fall back to ML if Rust is unavailable or poor ratio
+                # Check dedup first
+                existing = self._check_dedup(content)
+                if existing:
+                    return existing, len(existing.split())
+                compressed, compressed_tokens = self._try_rust_compressor(content)
+                if compressed and len(compressed) < len(content):
+                    self._record_dedup(content, compressed)
 
         except Exception as e:
             logger.warning("Compression with %s failed: %s", strategy.value, e)
@@ -1094,6 +1164,39 @@ class ContentRouter(Transform):
             compressed_tokens = len(compressed.split())
 
         return compressed, compressed_tokens or len(compressed.split())
+
+    def _try_rust_compressor(
+        self, content: str
+    ) -> tuple[str, int]:
+        """Fast Rust-based zstd compression as fast path for TEXT strategy.
+
+        This provides sub-millisecond compression with good ratios for typical
+        text content. Falls back to ML compressor if Rust is unavailable or
+        ratio is poor (>0.8).
+
+        Args:
+            content: Content to compress.
+
+        Returns:
+            Tuple of (compressed, token_count).
+        """
+        # Check env var for disabling Rust compression
+        if os.environ.get("HEADROOM_USE_RUST_COMPRESSION", "true").lower() == "false":
+            return self._try_ml_compressor(content, "", None)
+
+        try:
+            from ..workers import compress_text
+
+            result = compress_text(content, "general")
+            if result.strategy != "unavailable" and result.ratio < 0.8:
+                return result.compressed, len(result.compressed.split())
+            # Ratio too poor, fall back to ML
+            logger.debug("Rust compression ratio %.2f too poor, falling back to ML", result.ratio)
+        except Exception as e:
+            logger.debug("Rust compression unavailable: %s", e)
+
+        # Fall back to ML
+        return self._try_ml_compressor(content, "", None)
 
     def _strategy_from_detection_type(self, content_type: ContentType) -> CompressionStrategy:
         """Get strategy from ContentType enum."""

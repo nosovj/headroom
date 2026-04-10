@@ -2445,7 +2445,10 @@ class HeadroomProxy:
 
                     # Always use pipeline result — Zone 1 swaps are already applied
                     optimized_messages = result.messages
-                    transforms_applied = result.transforms_applied
+                    # Only update transforms if messages were actually modified by compression
+                    # (not just from Zone 1 cache swaps which don't count as compression)
+                    if result.messages != working_messages:
+                        transforms_applied = result.transforms_applied
                     pipeline_timing = result.timing
                     # Keep original_tokens as the REAL original (pre-Zone-1-swap)
                     # so tokens_saved captures both Zone 1 + Zone 2 savings.
@@ -3137,6 +3140,8 @@ class HeadroomProxy:
                     f"tok_saved={tokens_saved} "
                     f"cache_read={cr} cache_write={cw} cache_hit_pct={chp} "
                     f"opt_ms={optimization_latency:.0f} "
+                    # DEBUG: Log full transforms_applied before summarizing
+                    f"DEBUG_transforms={transforms_applied[:10] if transforms_applied else 'EMPTY'} "
                     f"transforms={_summarize_transforms(transforms_applied)} "
                     f"transforms_count={len(transforms_applied)}"  # DEBUG
                     f"{' timing=' + timing_str if timing_str else ''}"

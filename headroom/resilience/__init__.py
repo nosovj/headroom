@@ -23,21 +23,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import random
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, TypeVar
-from functools import wraps
+from typing import Any, Callable
 
 import httpx
 
 logger = logging.getLogger(__name__)
-
-# Feature flags
-RETRY_ENABLED = os.environ.get("HEADROOM_FEATURE_RETRY", "true").lower() == "true"
-CIRCUIT_BREAKER_ENABLED = os.environ.get("HEADROOM_FEATURE_CIRCUIT_BREAKER", "true").lower() == "true"
 
 # Retry defaults
 DEFAULT_MAX_RETRIES = 5
@@ -165,9 +159,6 @@ async def retry_with_backoff(
     Raises:
         RetryError: If all retries are exhausted.
     """
-    if not RETRY_ENABLED:
-        return await func(*args, **kwargs)
-
     retryable_fn = retryable or (lambda sc, e: is_retryable_error(sc, e))
 
     last_error: Exception | None = None
@@ -438,9 +429,6 @@ async def call_with_circuit_breaker(
     Raises:
         Exception: If circuit is open or call fails.
     """
-    if not CIRCUIT_BREAKER_ENABLED:
-        return await func(*args, **kwargs)
-
     registry = get_circuit_breaker_registry()
     cb = await registry.get_or_create(upstream_name)
 

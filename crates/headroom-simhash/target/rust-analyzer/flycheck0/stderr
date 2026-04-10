@@ -1,10 +1,7 @@
 warning: unused config key `build.linker` in `/home/joe/.cargo/config.toml`
-    Updating crates.io index
-     Locking 44 packages to latest compatible versions
-      Adding pyo3 v0.20.3 (available: v0.28.3)
-      Adding twox-hash v1.6.3 (available: v2.1.2)
-   0.250081077s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint: fingerprint error for headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("headroom_simhash", ["cdylib"], "/home/joe/llm/headroom-simhash/src/lib.rs", Edition2021) }
-   0.250098652s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/headroom-simhash-31d94c167902d6a7/lib-headroom_simhash`
+    Blocking waiting for file lock on build directory
+  24.323181878s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint: fingerprint error for headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("headroom_simhash", ["cdylib"], "/home/joe/llm/headroom-fork/crates/headroom-simhash/src/lib.rs", Edition2021) }
+  24.323218598s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/headroom-simhash-31d94c167902d6a7/lib-headroom_simhash`
 
 Caused by:
     No such file or directory (os error 2)
@@ -48,8 +45,8 @@ Stack backtrace:
   25: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   26: <unknown>
-   0.293404989s  INFO prepare_target{force=false package_id=pyo3 v0.20.3 target="pyo3"}: cargo::core::compiler::fingerprint: fingerprint error for pyo3 v0.20.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("pyo3", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.20.3/src/lib.rs", Edition2021) }
-   0.293418174s  INFO prepare_target{force=false package_id=pyo3 v0.20.3 target="pyo3"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/pyo3-0292bc2556bcc65c/lib-pyo3`
+  24.369632883s  INFO prepare_target{force=false package_id=pyo3 v0.20.3 target="pyo3"}: cargo::core::compiler::fingerprint: fingerprint error for pyo3 v0.20.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("pyo3", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-0.20.3/src/lib.rs", Edition2021) }
+  24.369646403s  INFO prepare_target{force=false package_id=pyo3 v0.20.3 target="pyo3"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/pyo3-0292bc2556bcc65c/lib-pyo3`
 
 Caused by:
     No such file or directory (os error 2)
@@ -94,8 +91,8 @@ Stack backtrace:
   26: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   27: <unknown>
-   0.293803508s  INFO prepare_target{force=false package_id=libc v0.2.184 target="libc"}: cargo::core::compiler::fingerprint: fingerprint error for libc v0.2.184/Check { test: false }/TargetInner { ..: lib_target("libc", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.184/src/lib.rs", Edition2021) }
-   0.293809885s  INFO prepare_target{force=false package_id=libc v0.2.184 target="libc"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/libc-a2e5534e0732640d/lib-libc`
+  24.369953866s  INFO prepare_target{force=false package_id=libc v0.2.184 target="libc"}: cargo::core::compiler::fingerprint: fingerprint error for libc v0.2.184/Check { test: false }/TargetInner { ..: lib_target("libc", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.184/src/lib.rs", Edition2021) }
+  24.369961380s  INFO prepare_target{force=false package_id=libc v0.2.184 target="libc"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/libc-a2e5534e0732640d/lib-libc`
 
 Caused by:
     No such file or directory (os error 2)
@@ -141,8 +138,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.294070523s  INFO prepare_target{force=false package_id=memoffset v0.9.1 target="memoffset"}: cargo::core::compiler::fingerprint: fingerprint error for memoffset v0.9.1/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("memoffset", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memoffset-0.9.1/src/lib.rs", Edition2015) }
-   0.294075837s  INFO prepare_target{force=false package_id=memoffset v0.9.1 target="memoffset"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/memoffset-b43301214c86d868/lib-memoffset`
+  24.370219366s  INFO prepare_target{force=false package_id=memoffset v0.9.1 target="memoffset"}: cargo::core::compiler::fingerprint: fingerprint error for memoffset v0.9.1/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("memoffset", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memoffset-0.9.1/src/lib.rs", Edition2015) }
+  24.370224470s  INFO prepare_target{force=false package_id=memoffset v0.9.1 target="memoffset"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/memoffset-b43301214c86d868/lib-memoffset`
 
 Caused by:
     No such file or directory (os error 2)
@@ -188,8 +185,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.294349807s  INFO prepare_target{force=false package_id=parking_lot v0.12.5 target="parking_lot"}: cargo::core::compiler::fingerprint: fingerprint error for parking_lot v0.12.5/Check { test: false }/TargetInner { ..: lib_target("parking_lot", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking_lot-0.12.5/src/lib.rs", Edition2021) }
-   0.294354563s  INFO prepare_target{force=false package_id=parking_lot v0.12.5 target="parking_lot"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/parking_lot-fa9e9ff1afd340ab/lib-parking_lot`
+  24.370569678s  INFO prepare_target{force=false package_id=parking_lot v0.12.5 target="parking_lot"}: cargo::core::compiler::fingerprint: fingerprint error for parking_lot v0.12.5/Check { test: false }/TargetInner { ..: lib_target("parking_lot", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking_lot-0.12.5/src/lib.rs", Edition2021) }
+  24.370578861s  INFO prepare_target{force=false package_id=parking_lot v0.12.5 target="parking_lot"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/parking_lot-fa9e9ff1afd340ab/lib-parking_lot`
 
 Caused by:
     No such file or directory (os error 2)
@@ -235,8 +232,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.294556311s  INFO prepare_target{force=false package_id=parking_lot_core v0.9.12 target="parking_lot_core"}: cargo::core::compiler::fingerprint: fingerprint error for parking_lot_core v0.9.12/Check { test: false }/TargetInner { ..: lib_target("parking_lot_core", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking_lot_core-0.9.12/src/lib.rs", Edition2021) }
-   0.294561333s  INFO prepare_target{force=false package_id=parking_lot_core v0.9.12 target="parking_lot_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/parking_lot_core-38d5b654ece5ad28/lib-parking_lot_core`
+  24.371175110s  INFO prepare_target{force=false package_id=parking_lot_core v0.9.12 target="parking_lot_core"}: cargo::core::compiler::fingerprint: fingerprint error for parking_lot_core v0.9.12/Check { test: false }/TargetInner { ..: lib_target("parking_lot_core", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parking_lot_core-0.9.12/src/lib.rs", Edition2021) }
+  24.371188787s  INFO prepare_target{force=false package_id=parking_lot_core v0.9.12 target="parking_lot_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/parking_lot_core-38d5b654ece5ad28/lib-parking_lot_core`
 
 Caused by:
     No such file or directory (os error 2)
@@ -283,8 +280,8 @@ Stack backtrace:
   28: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   29: <unknown>
-   0.294865812s  INFO prepare_target{force=false package_id=smallvec v1.15.1 target="smallvec"}: cargo::core::compiler::fingerprint: fingerprint error for smallvec v1.15.1/Check { test: false }/TargetInner { ..: lib_target("smallvec", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/smallvec-1.15.1/src/lib.rs", Edition2018) }
-   0.294871453s  INFO prepare_target{force=false package_id=smallvec v1.15.1 target="smallvec"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/smallvec-ca7abba4c7914635/lib-smallvec`
+  24.371736646s  INFO prepare_target{force=false package_id=smallvec v1.15.1 target="smallvec"}: cargo::core::compiler::fingerprint: fingerprint error for smallvec v1.15.1/Check { test: false }/TargetInner { ..: lib_target("smallvec", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/smallvec-1.15.1/src/lib.rs", Edition2018) }
+  24.371745274s  INFO prepare_target{force=false package_id=smallvec v1.15.1 target="smallvec"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/smallvec-ca7abba4c7914635/lib-smallvec`
 
 Caused by:
     No such file or directory (os error 2)
@@ -332,8 +329,8 @@ Stack backtrace:
   29: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   30: <unknown>
-   0.295179474s  INFO prepare_target{force=false package_id=portable-atomic v1.13.1 target="portable_atomic"}: cargo::core::compiler::fingerprint: fingerprint error for portable-atomic v1.13.1/Check { test: false }/TargetInner { doc_scrape_examples: Disabled, ..: lib_target("portable_atomic", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/portable-atomic-1.13.1/src/lib.rs", Edition2018) }
-   0.295184002s  INFO prepare_target{force=false package_id=portable-atomic v1.13.1 target="portable_atomic"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/portable-atomic-05105fb142836c14/lib-portable_atomic`
+  24.372405543s  INFO prepare_target{force=false package_id=pyo3-ffi v0.20.3 target="pyo3_ffi"}: cargo::core::compiler::fingerprint: fingerprint error for pyo3-ffi v0.20.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("pyo3_ffi", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-ffi-0.20.3/src/lib.rs", Edition2021) }
+  24.372412063s  INFO prepare_target{force=false package_id=pyo3-ffi v0.20.3 target="pyo3_ffi"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/pyo3-ffi-bb50089e3c0f004c/lib-pyo3_ffi`
 
 Caused by:
     No such file or directory (os error 2)
@@ -379,8 +376,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.295724543s  INFO prepare_target{force=false package_id=pyo3-ffi v0.20.3 target="pyo3_ffi"}: cargo::core::compiler::fingerprint: fingerprint error for pyo3-ffi v0.20.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("pyo3_ffi", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-ffi-0.20.3/src/lib.rs", Edition2021) }
-   0.295730686s  INFO prepare_target{force=false package_id=pyo3-ffi v0.20.3 target="pyo3_ffi"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/pyo3-ffi-bb50089e3c0f004c/lib-pyo3_ffi`
+  24.372811302s  INFO prepare_target{force=false package_id=unindent v0.2.4 target="unindent"}: cargo::core::compiler::fingerprint: fingerprint error for unindent v0.2.4/Check { test: false }/TargetInner { ..: lib_target("unindent", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unindent-0.2.4/src/lib.rs", Edition2021) }
+  24.372816754s  INFO prepare_target{force=false package_id=unindent v0.2.4 target="unindent"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/unindent-132ee7562e991b64/lib-unindent`
 
 Caused by:
     No such file or directory (os error 2)
@@ -426,55 +423,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.296269674s  INFO prepare_target{force=false package_id=unindent v0.2.4 target="unindent"}: cargo::core::compiler::fingerprint: fingerprint error for unindent v0.2.4/Check { test: false }/TargetInner { ..: lib_target("unindent", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unindent-0.2.4/src/lib.rs", Edition2021) }
-   0.296276291s  INFO prepare_target{force=false package_id=unindent v0.2.4 target="unindent"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/unindent-132ee7562e991b64/lib-unindent`
-
-Caused by:
-    No such file or directory (os error 2)
-
-Stack backtrace:
-   0: cargo_util::paths::read_bytes
-   1: cargo_util::paths::read
-   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
-   3: cargo::core::compiler::fingerprint::prepare_target
-   4: cargo::core::compiler::compile
-   5: cargo::core::compiler::compile
-   6: cargo::core::compiler::compile
-   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
-   8: cargo::ops::cargo_compile::compile_ws
-   9: cargo::ops::cargo_compile::compile_with_exec
-  10: cargo::ops::cargo_compile::compile
-  11: cargo::commands::check::exec
-  12: <cargo::cli::Exec>::exec
-  13: cargo::main
-  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
-  15: std::rt::lang_start::<()>::{closure#0}
-  16: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/core/src/ops/function.rs:287:21
-  17: std::panicking::catch_unwind::do_call
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panicking.rs:590:40
-  18: std::panicking::catch_unwind
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panicking.rs:553:19
-  19: std::panic::catch_unwind
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panic.rs:359:14
-  20: std::rt::lang_start_internal::{{closure}}
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/rt.rs:175:24
-  21: std::panicking::catch_unwind::do_call
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panicking.rs:590:40
-  22: std::panicking::catch_unwind
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panicking.rs:553:19
-  23: std::panic::catch_unwind
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/panic.rs:359:14
-  24: std::rt::lang_start_internal
-             at /rustc/ded5c06cf21d2b93bffd5d884aa6e96934ee4234/library/std/src/rt.rs:171:5
-  25: main
-  26: __libc_start_call_main
-             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
-  27: __libc_start_main_impl
-             at ./csu/../csu/libc-start.c:392:3
-  28: <unknown>
-   0.296461872s  INFO prepare_target{force=false package_id=rayon v1.11.0 target="rayon"}: cargo::core::compiler::fingerprint: fingerprint error for rayon v1.11.0/Check { test: false }/TargetInner { ..: lib_target("rayon", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-1.11.0/src/lib.rs", Edition2021) }
-   0.296466002s  INFO prepare_target{force=false package_id=rayon v1.11.0 target="rayon"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rayon-5e1c97318eed8bb5/lib-rayon`
+  24.372912831s  INFO prepare_target{force=false package_id=rayon v1.11.0 target="rayon"}: cargo::core::compiler::fingerprint: fingerprint error for rayon v1.11.0/Check { test: false }/TargetInner { ..: lib_target("rayon", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-1.11.0/src/lib.rs", Edition2021) }
+  24.372916770s  INFO prepare_target{force=false package_id=rayon v1.11.0 target="rayon"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rayon-5e1c97318eed8bb5/lib-rayon`
 
 Caused by:
     No such file or directory (os error 2)
@@ -519,8 +469,8 @@ Stack backtrace:
   26: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   27: <unknown>
-   0.296590508s  INFO prepare_target{force=false package_id=either v1.15.0 target="either"}: cargo::core::compiler::fingerprint: fingerprint error for either v1.15.0/Check { test: false }/TargetInner { ..: lib_target("either", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/either-1.15.0/src/lib.rs", Edition2021) }
-   0.296594312s  INFO prepare_target{force=false package_id=either v1.15.0 target="either"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/either-3ccb45ae2584bdbd/lib-either`
+  24.373030051s  INFO prepare_target{force=false package_id=either v1.15.0 target="either"}: cargo::core::compiler::fingerprint: fingerprint error for either v1.15.0/Check { test: false }/TargetInner { ..: lib_target("either", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/either-1.15.0/src/lib.rs", Edition2021) }
+  24.373033599s  INFO prepare_target{force=false package_id=either v1.15.0 target="either"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/either-3ccb45ae2584bdbd/lib-either`
 
 Caused by:
     No such file or directory (os error 2)
@@ -566,8 +516,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.297026116s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint: fingerprint error for twox-hash v1.6.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("twox_hash", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/twox-hash-1.6.3/src/lib.rs", Edition2018) }
-   0.297031582s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/twox-hash-84e8702fb4e5d098/lib-twox_hash`
+  24.373557077s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint: fingerprint error for twox-hash v1.6.3/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("twox_hash", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/twox-hash-1.6.3/src/lib.rs", Edition2018) }
+  24.373563037s  INFO prepare_target{force=false package_id=twox-hash v1.6.3 target="twox_hash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/twox-hash-84e8702fb4e5d098/lib-twox_hash`
 
 Caused by:
     No such file or directory (os error 2)
@@ -612,8 +562,8 @@ Stack backtrace:
   26: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   27: <unknown>
-   0.297177075s  INFO prepare_target{force=false package_id=rand v0.8.5 target="rand"}: cargo::core::compiler::fingerprint: fingerprint error for rand v0.8.5/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.8.5/src/lib.rs", Edition2018) }
-   0.297181971s  INFO prepare_target{force=false package_id=rand v0.8.5 target="rand"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand-4b78712eeddddcb9/lib-rand`
+  24.373752280s  INFO prepare_target{force=false package_id=rand v0.8.5 target="rand"}: cargo::core::compiler::fingerprint: fingerprint error for rand v0.8.5/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand-0.8.5/src/lib.rs", Edition2018) }
+  24.373756507s  INFO prepare_target{force=false package_id=rand v0.8.5 target="rand"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand-4b78712eeddddcb9/lib-rand`
 
 Caused by:
     No such file or directory (os error 2)
@@ -659,8 +609,8 @@ Stack backtrace:
   27: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   28: <unknown>
-   0.297343401s  INFO prepare_target{force=false package_id=rand_chacha v0.3.1 target="rand_chacha"}: cargo::core::compiler::fingerprint: fingerprint error for rand_chacha v0.3.1/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand_chacha", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_chacha-0.3.1/src/lib.rs", Edition2018) }
-   0.297347863s  INFO prepare_target{force=false package_id=rand_chacha v0.3.1 target="rand_chacha"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand_chacha-6d2228804d1ab991/lib-rand_chacha`
+  24.373890737s  INFO prepare_target{force=false package_id=rand_chacha v0.3.1 target="rand_chacha"}: cargo::core::compiler::fingerprint: fingerprint error for rand_chacha v0.3.1/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand_chacha", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_chacha-0.3.1/src/lib.rs", Edition2018) }
+  24.373894825s  INFO prepare_target{force=false package_id=rand_chacha v0.3.1 target="rand_chacha"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand_chacha-6d2228804d1ab991/lib-rand_chacha`
 
 Caused by:
     No such file or directory (os error 2)
@@ -707,8 +657,8 @@ Stack backtrace:
   28: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   29: <unknown>
-   0.297720140s  INFO prepare_target{force=false package_id=rand_core v0.6.4 target="rand_core"}: cargo::core::compiler::fingerprint: fingerprint error for rand_core v0.6.4/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand_core", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.6.4/src/lib.rs", Edition2018) }
-   0.297725618s  INFO prepare_target{force=false package_id=rand_core v0.6.4 target="rand_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand_core-4b22f49271654765/lib-rand_core`
+  24.374159097s  INFO prepare_target{force=false package_id=rand_core v0.6.4 target="rand_core"}: cargo::core::compiler::fingerprint: fingerprint error for rand_core v0.6.4/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("rand_core", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rand_core-0.6.4/src/lib.rs", Edition2018) }
+  24.374164612s  INFO prepare_target{force=false package_id=rand_core v0.6.4 target="rand_core"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/rand_core-4b22f49271654765/lib-rand_core`
 
 Caused by:
     No such file or directory (os error 2)
@@ -756,8 +706,8 @@ Stack backtrace:
   29: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   30: <unknown>
-   0.297940887s  INFO prepare_target{force=false package_id=getrandom v0.2.17 target="getrandom"}: cargo::core::compiler::fingerprint: fingerprint error for getrandom v0.2.17/Check { test: false }/TargetInner { ..: lib_target("getrandom", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs", Edition2018) }
-   0.297947534s  INFO prepare_target{force=false package_id=getrandom v0.2.17 target="getrandom"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/getrandom-f0ccc443083b0d30/lib-getrandom`
+  24.374264632s  INFO prepare_target{force=false package_id=getrandom v0.2.17 target="getrandom"}: cargo::core::compiler::fingerprint: fingerprint error for getrandom v0.2.17/Check { test: false }/TargetInner { ..: lib_target("getrandom", ["lib"], "/home/joe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.17/src/lib.rs", Edition2018) }
+  24.374268266s  INFO prepare_target{force=false package_id=getrandom v0.2.17 target="getrandom"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/getrandom-f0ccc443083b0d30/lib-getrandom`
 
 Caused by:
     No such file or directory (os error 2)
@@ -806,8 +756,8 @@ Stack backtrace:
   30: __libc_start_main_impl
              at ./csu/../csu/libc-start.c:392:3
   31: <unknown>
-   0.298171070s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint: fingerprint error for headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("headroom_simhash", ["cdylib"], "/home/joe/llm/headroom-simhash/src/lib.rs", Edition2021) }
-   0.298176781s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/headroom-simhash-fa8b1bf3232f1551/test-lib-headroom_simhash`
+  24.374416730s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint: fingerprint error for headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("headroom_simhash", ["cdylib"], "/home/joe/llm/headroom-fork/crates/headroom-simhash/src/lib.rs", Edition2021) }
+  24.374421089s  INFO prepare_target{force=false package_id=headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash) target="headroom_simhash"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/joe/.cargo-target/debug/.fingerprint/headroom-simhash-fa8b1bf3232f1551/test-lib-headroom_simhash`
 
 Caused by:
     No such file or directory (os error 2)
@@ -853,9 +803,8 @@ Stack backtrace:
   26: <unknown>
     Checking smallvec v1.15.1
     Checking either v1.15.0
-    Checking unindent v0.2.4
     Checking libc v0.2.184
-    Checking portable-atomic v1.13.1
+    Checking unindent v0.2.4
     Checking memoffset v0.9.1
     Checking rayon v1.11.0
     Checking getrandom v0.2.17
@@ -867,7 +816,5 @@ Stack backtrace:
     Checking pyo3 v0.20.3
     Checking rand v0.8.5
     Checking twox-hash v1.6.3
-    Checking headroom-simhash v0.1.0 (/home/joe/llm/headroom-simhash)
-error: could not compile `headroom-simhash` (lib test) due to 4 previous errors; 1 warning emitted
-warning: build failed, waiting for other jobs to finish...
-error: could not compile `headroom-simhash` (lib) due to 4 previous errors; 1 warning emitted
+    Checking headroom-simhash v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-simhash)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 26.23s

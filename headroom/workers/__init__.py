@@ -12,14 +12,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
-
-# Feature flag for async pipeline
-ASYNC_PIPELINE_ENABLED = os.environ.get("HEADROOM_FEATURE_ASYNC_PIPELINE", "true").lower() == "true"
 
 # Module-level worker pool instance
 _worker_pool = None
@@ -31,13 +27,9 @@ def _get_worker_pool():
     if _worker_pool is None:
         try:
             import headroom_workers as workers
-            pool_size = int(os.environ.get("HEADROOM_WORKER_POOL_SIZE", "0") or "0")
-            _worker_pool = workers.create_pool(pool_size=pool_size if pool_size > 0 else None)
+            _worker_pool = workers.create_pool(pool_size=None)  # Default: CPU count
             _worker_pool.start()
-            logger.info(
-                f"Worker pool started (size: {_worker_pool.get_stats().total_workers}, "
-                f"async_pipeline: {ASYNC_PIPELINE_ENABLED})"
-            )
+            logger.info(f"Worker pool started (size: {_worker_pool.get_stats().total_workers})")
         except Exception as e:
             logger.warning(f"Failed to start worker pool: {e}")
             _worker_pool = None
@@ -72,11 +64,6 @@ async def submit_simhash_work(items: list[str], threshold: int = 3) -> int:
         return _sync_simhash_call(items, threshold)
 
     request_id = id(items) & 0xFFFFFFFF
-    payload = json.dumps({
-        "type": "count_unique_simhash",
-        "items": items,
-        "threshold": threshold,
-    })
 
     # Run the blocking work in a thread to release GIL
     loop = asyncio.get_event_loop()

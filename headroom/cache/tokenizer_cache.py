@@ -16,16 +16,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
-
-# Feature flag - can be disabled via environment
-TOKEN_CACHE_ENABLED = os.environ.get("HEADROOM_FEATURE_TOKEN_CACHE", "true").lower() == "true"
 
 # Default max cache size
 DEFAULT_MAX_CACHE_SIZE = 10_000
@@ -95,9 +91,6 @@ class TokenCountCache:
         Returns:
             Cached token count, or None if not found or validation failed.
         """
-        if not TOKEN_CACHE_ENABLED:
-            return None
-
         with self._lock:
             key = self._make_key(session_id, content)
             entry = self._cache.get(key)
@@ -136,9 +129,6 @@ class TokenCountCache:
             content: Content that was tokenized.
             token_count: Token count result.
         """
-        if not TOKEN_CACHE_ENABLED:
-            return
-
         with self._lock:
             # Evict oldest if at capacity
             if len(self._cache) >= self._max_size and self._cache:
@@ -235,9 +225,8 @@ def get_token_cache() -> TokenCountCache:
     global _global_cache
     with _cache_lock:
         if _global_cache is None:
-            max_size = int(os.environ.get("HEADROOM_TOKEN_CACHE_SIZE", str(DEFAULT_MAX_CACHE_SIZE)))
-            _global_cache = TokenCountCache(max_size=max_size)
-            logger.info(f"Token cache initialized (max_size={max_size})")
+            _global_cache = TokenCountCache(max_size=DEFAULT_MAX_CACHE_SIZE)
+            logger.info(f"Token cache initialized (max_size={DEFAULT_MAX_CACHE_SIZE})")
         return _global_cache
 
 

@@ -18,14 +18,10 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import zlib
 from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
-
-# Feature flag - set to "false" to disable async pipeline and use sync execution
-ASYNC_PIPELINE_ENABLED = os.environ.get("HEADROOM_FEATURE_ASYNC_PIPELINE", "true").lower() == "true"
 
 # Try to import Rust simhash for GIL-free computation
 _rust_simhash_available = False

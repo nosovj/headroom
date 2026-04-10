@@ -1,0 +1,17 @@
+[package]
+name = "headroom-simhash"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+twox-hash = "1.6"
+rayon = "1.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

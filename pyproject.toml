@@ -128,6 +128,10 @@ voice = [
     "transformers>=4.30.0",
     "torch>=2.0.0",
 ]
+# Rust extension for fast simhash (bypasses GIL, no IPC overhead)
+simhash-rust = [
+    "headroom-simhash>=0.1.0",
+]
 # Voice training (includes voice deps + training extras)
 voice-train = [
     "headroom-ai[voice]",
@@ -275,8 +279,9 @@ ignore_errors = true
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short -m 'not stress'"
 asyncio_mode = "auto"
+markers = ["stress: slow stress tests excluded from default runs"]
 
 [tool.coverage.run]
 source = ["headroom"]

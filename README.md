@@ -347,6 +347,38 @@ Context compression is a new space. Here's how the approaches differ:
 
 **Overhead**: 15-200ms compression latency (net positive for Sonnet/Opus). Full data: [Latency Benchmarks](docs/LATENCY_BENCHMARKS.md)
 
+### Compression Pipeline Optimizations
+
+Headroom uses multiple high-performance optimizations in its compression pipeline:
+
+#### orjson JSON Serialization
+2x faster than standard library `json.dumps` for content serialization.
+
+| Operation | Before | After | Speedup |
+|-----------|--------|-------|---------|
+| JSON Serialization (500 items) | 1.47ms | 0.72ms | **2.0x** |
+
+#### Rust Simhash Extension
+Native Rust with xxHash64 and Rayon parallelism - bypasses GIL entirely for true parallelism.
+
+| Operation | Python+MP | Rust | Speedup |
+|-----------|-----------|------|---------|
+| Batch simhash (500 items) | 2174ms | 3.2ms | **682x** |
+| Batch simhash (1000 items) | 3674ms | 3.4ms | **1075x** |
+| Count unique (1000 items) | 3647ms | 35ms | **104x** |
+
+### Real-World Performance
+
+Proxy benchmark comparing headroom-fork (with Rust simhash) vs upstream:
+
+| Run | Original (8787) | Fork (8788) | Speedup |
+|-----|-----------------|-------------|---------|
+| 1 (cold) | 7,109ms | 115ms | **62x** |
+| 2 (warm) | 512ms | 3ms | **171x** |
+| 3 (warm) | 181ms | 3ms | **53x** |
+
+Test: 500 JSON items (~289KB payload) → compression request
+
 ---
 
 ## Integrations

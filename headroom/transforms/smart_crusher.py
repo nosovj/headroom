@@ -71,8 +71,10 @@ from ..utils import (
     compute_short_hash,
     create_tool_digest_marker,
     deep_copy_messages,
+    orjson,
     safe_json_dumps,
     safe_json_loads,
+    _orjson_available,
 )
 from .anchor_selector import AnchorSelector
 from .anchor_selector import DataPattern as AnchorDataPattern
@@ -732,7 +734,7 @@ def _detect_error_items_for_preservation(
             if item_strings is not None and i < len(item_strings):
                 item_str = item_strings[i].lower()
             else:
-                item_str = json.dumps(item).lower()
+                item_str = safe_json_dumps(item).lower()
         except Exception:
             continue
 
@@ -810,7 +812,7 @@ def _detect_items_by_learned_semantics(
                 value_canonical = value
             elif isinstance(value, (list, dict)):
                 try:
-                    value_canonical = json.dumps(value, sort_keys=True, default=str)
+                    value_canonical = safe_json_dumps(value, sort_keys=True)
                 except (TypeError, ValueError):
                     value_canonical = str(value)
             else:
@@ -1758,7 +1760,10 @@ class SmartCrusher(Transform):
             try:
                 if isinstance(item, dict):
                     # Canonical JSON serialization for consistent hashing
-                    content = json.dumps(item, sort_keys=True, default=str)
+                    if _orjson_available:
+                        content = orjson.dumps(item, option=orjson.OPT_SORT_KEYS).decode()
+                    else:
+                        content = safe_json_dumps(item, sort_keys=True)
                 else:
                     # Non-dict items: use string representation
                     content = str(item)
@@ -1829,7 +1834,7 @@ class SmartCrusher(Transform):
                 item = items[idx]
                 try:
                     if isinstance(item, dict):
-                        content = json.dumps(item, sort_keys=True, default=str)
+                        content = safe_json_dumps(item, sort_keys=True)
                     else:
                         content = str(item)
                     seen_hashes.add(hashlib.md5(content.encode()).hexdigest()[:16])
@@ -1862,7 +1867,7 @@ class SmartCrusher(Transform):
                 # Check if this item's content is unique
                 try:
                     if isinstance(item, dict):
-                        content = json.dumps(item, sort_keys=True, default=str)
+                        content = safe_json_dumps(item, sort_keys=True)
                     else:
                         content = str(item)
                     item_hash = hashlib.md5(content.encode()).hexdigest()[:16]
@@ -2419,7 +2424,7 @@ class SmartCrusher(Transform):
         # compute_optimal_k handles trivial cases (n <= 8 → keep all)
         from .adaptive_sizer import compute_optimal_k
 
-        item_strings = [json.dumps(item, default=str) for item in items]
+        item_strings = [safe_json_dumps(item) for item in items]
         adaptive_k = compute_optimal_k(
             item_strings,
             bias=bias,
@@ -2585,7 +2590,7 @@ class SmartCrusher(Transform):
                 store = self._get_compression_store()
                 # Reuse cached item_strings to avoid re-serializing
                 original_json = "[" + ", ".join(item_strings) + "]"
-                compressed_json = json.dumps(result, default=str)
+                compressed_json = safe_json_dumps(result)
 
                 ccr_hash = store.store(
                     original=original_json,
@@ -2624,7 +2629,7 @@ class SmartCrusher(Transform):
             try:
                 # Calculate token counts (approximate) - reuse cached item_strings
                 original_tokens = sum(len(s) for s in item_strings) // 4
-                compressed_tokens = len(json.dumps(result, default=str)) // 4
+                compressed_tokens = len(safe_json_dumps(result)) // 4
 
                 toin.record_compression(
                     tool_signature=tool_signature,
@@ -2696,7 +2701,7 @@ class SmartCrusher(Transform):
         from .adaptive_sizer import compute_optimal_k
 
         if item_strings is None:
-            item_strings = [json.dumps(item, default=str) for item in items]
+            item_strings = [safe_json_dumps(item) for item in items]
         k_total = compute_optimal_k(
             item_strings,
             bias=bias,
@@ -2958,9 +2963,9 @@ class SmartCrusher(Transform):
                 crushed, strategy, _, _ = self._crush_array(
                     values, query_context, tool_name, bias=bias
                 )
-                crushed_set = {json.dumps(c, sort_keys=True, default=str) for c in crushed}
+                crushed_set = {safe_json_dumps(c, sort_keys=True) for c in crushed}
                 for idx, val in group_items:
-                    if json.dumps(val, sort_keys=True, default=str) in crushed_set:
+                    if safe_json_dumps(val, sort_keys=True) in crushed_set:
                         keep_indices.add(idx)
                 strategy_parts.append(f"dict:{len(values)}->{len(crushed)}")
 
@@ -3028,7 +3033,7 @@ class SmartCrusher(Transform):
         kv_tokens: list[tuple[str, int]] = []
         total_tokens = 0
         for key, val in obj.items():
-            val_str = json.dumps(val, default=str)
+            val_str = safe_json_dumps(val)
             tokens = len(val_str) // 4 + len(key) // 4 + 2  # rough estimate
             kv_tokens.append((key, tokens))
             total_tokens += tokens
@@ -3039,7 +3044,7 @@ class SmartCrusher(Transform):
 
         # Compute adaptive K on key-value string representations
         keys = list(obj.keys())
-        kv_strings = [f"{k}: {json.dumps(obj[k], default=str)}" for k in keys]
+        kv_strings = [f"{k}: {safe_json_dumps(obj[k])}" for k in keys]
 
         from .adaptive_sizer import compute_optimal_k
 
@@ -3058,7 +3063,7 @@ class SmartCrusher(Transform):
 
         # Always keep: keys with error-containing values
         for key, val in obj.items():
-            val_str = json.dumps(val, default=str).lower()
+            val_str = safe_json_dumps(val).lower()
             for keyword in _ERROR_KEYWORDS_FOR_PRESERVATION:
                 if keyword in val_str:
                     keep_keys.add(key)
@@ -3088,7 +3093,7 @@ class SmartCrusher(Transform):
                         k
                         for k in keep_keys
                         if any(
-                            kw in json.dumps(obj[k], default=str).lower()
+                            kw in safe_json_dumps(obj[k]).lower()
                             for kw in _ERROR_KEYWORDS_FOR_PRESERVATION
                         )
                     ]
@@ -3254,7 +3259,7 @@ class SmartCrusher(Transform):
             item_strs = (
                 item_strings
                 if item_strings is not None
-                else [json.dumps(item, default=str) for item in items]
+                else [safe_json_dumps(item) for item in items]
             )
             scores = self._scorer.score_batch(item_strs, query_context)
             for i, score in enumerate(scores):
@@ -3360,7 +3365,7 @@ class SmartCrusher(Transform):
             item_strs = (
                 item_strings
                 if item_strings is not None
-                else [json.dumps(item, default=str) for item in items]
+                else [safe_json_dumps(item) for item in items]
             )
             scores = self._scorer.score_batch(item_strs, query_context)
             for i, score in enumerate(scores):
@@ -3468,7 +3473,7 @@ class SmartCrusher(Transform):
             item_strs = (
                 item_strings
                 if item_strings is not None
-                else [json.dumps(item, default=str) for item in items]
+                else [safe_json_dumps(item) for item in items]
             )
             scores = self._scorer.score_batch(item_strs, query_context)
             # Higher threshold and limit count to avoid adding everything
@@ -3582,7 +3587,7 @@ class SmartCrusher(Transform):
             item_strs = (
                 item_strings
                 if item_strings is not None
-                else [json.dumps(item, default=str) for item in items]
+                else [safe_json_dumps(item) for item in items]
             )
             scores = self._scorer.score_batch(item_strs, query_context)
             for i, score in enumerate(scores):

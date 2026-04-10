@@ -10,6 +10,18 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+_orjson_available = False
+try:
+    import orjson
+
+    _orjson_available = True
+except ImportError:
+    orjson = None
+
+__all__ = [
+    "orjson",  # Expose for orjson.OPT_* flags
+]
+
 # Marker format for Headroom modifications
 MARKER_PREFIX = "<headroom:"
 MARKER_SUFFIX = ">"
@@ -197,13 +209,22 @@ def safe_json_dumps(obj: Any, **kwargs: Any) -> str:
     """
     Safely serialize to JSON with defaults.
 
+    Uses orjson if available for better performance.
+
     Args:
         obj: Object to serialize.
-        **kwargs: Additional json.dumps arguments.
+        **kwargs: Additional json.dumps arguments (ignored when orjson is available).
 
     Returns:
         JSON string.
     """
+    if _orjson_available:
+        option = orjson.OPT_NON_STR_KEYS
+        # Handle indent if specified
+        if kwargs.get("indent") is not None:
+            option |= orjson.OPT_INDENT_2
+        return orjson.dumps(obj, option=option).decode()
+    
     kwargs.setdefault("ensure_ascii", False)
     kwargs.setdefault("separators", (",", ":"))  # Compact by default
     return json.dumps(obj, **kwargs)

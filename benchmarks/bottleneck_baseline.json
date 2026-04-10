@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-04-09T17:26:41Z",
+  "item_count": 500,
+  "json_serialization": {
+    "json_dumps": 1.335724999080412,
+    "orjson_dumps": 0.46640100481454283
+  },
+  "simhash_variants": {
+    "rust_optimized": 0.26975999935530126,
+    "adaptive_python": 45.323981990804896
+  },
+  "bigram": {
+    "bigram_cpu": 3.7580490024993196
+  }
+}

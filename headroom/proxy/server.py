@@ -260,6 +260,56 @@ def _get_rtk_stats() -> dict[str, Any] | None:
     return {"installed": True, "total_commands": 0, "tokens_saved": 0, "avg_savings_pct": 0.0}
 
 
+async def _get_worker_pool_stats() -> dict[str, Any]:
+    """Get worker pool statistics."""
+    try:
+        from headroom.workers import get_pool_stats
+        stats = get_pool_stats()
+        if stats:
+            return {
+                "enabled": True,
+                **stats,
+            }
+    except Exception:
+        pass
+    return {"enabled": False}
+
+
+async def _get_tokenizer_cache_stats() -> dict[str, Any]:
+    """Get tokenizer cache statistics."""
+    try:
+        from headroom.cache.tokenizer_cache import get_token_cache
+        cache = get_token_cache()
+        stats = cache.get_stats()
+        return {
+            "enabled": True,
+            "size": cache.size,
+            "max_size": cache.max_size,
+            "hits": stats.hits,
+            "misses": stats.misses,
+            "hit_rate": round(stats.hit_rate * 100, 1) if stats.hit_rate else 0,
+            "evictions": stats.evictions,
+        }
+    except Exception:
+        pass
+    return {"enabled": False}
+
+
+async def _get_circuit_breaker_stats() -> dict[str, Any]:
+    """Get circuit breaker statistics."""
+    try:
+        from headroom.resilience import get_circuit_breaker_registry
+        registry = get_circuit_breaker_registry()
+        stats = await registry.get_stats()
+        return {
+            "enabled": True,
+            "upstreams": stats,
+        }
+    except Exception:
+        pass
+    return {"enabled": False}
+
+
 def _build_prefix_cache_stats(
     metrics: PrometheusMetrics,
     cost_tracker: CostTracker | None,
@@ -7545,6 +7595,10 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
             "cache": await proxy.cache.stats() if proxy.cache else None,
             "rate_limiter": await proxy.rate_limiter.stats() if proxy.rate_limiter else None,
             "recent_requests": proxy.logger.get_recent(10) if proxy.logger else [],
+            # New optimization modules
+            "worker_pool": await _get_worker_pool_stats(),
+            "tokenizer_cache": await _get_tokenizer_cache_stats(),
+            "circuit_breaker": await _get_circuit_breaker_stats(),
         }
 
     @app.get("/stats-history")

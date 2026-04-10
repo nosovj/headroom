@@ -18,10 +18,24 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 import zlib
 from collections.abc import Sequence
 
 logger = logging.getLogger(__name__)
+
+# Feature flag - set to "false" to disable async pipeline and use sync execution
+ASYNC_PIPELINE_ENABLED = os.environ.get("HEADROOM_FEATURE_ASYNC_PIPELINE", "true").lower() == "true"
+
+# Try to import Rust simhash for GIL-free computation
+_rust_simhash_available = False
+try:
+    from headroom_simhash import count_unique_simhash as _rust_count_unique_simhash
+    _rust_simhash_available = True
+    logger.debug("Rust simhash (headroom_simhash) available")
+except ImportError:
+    logger.debug("Rust simhash not available, using Python fallback")
+    _rust_count_unique_simhash = None
 
 
 def compute_optimal_k(
@@ -225,6 +239,9 @@ def count_unique_simhash(items: Sequence[str], threshold: int = 3) -> int:
     Groups items by SimHash fingerprint similarity (Hamming distance <= threshold).
     Returns the number of distinct groups.
 
+    Uses the Rust implementation (headroom_simhash) when available for GIL-free
+    parallel computation. Falls back to pure Python if Rust is not available.
+
     Args:
         items: Sequence of string items.
         threshold: Max Hamming distance to consider items as duplicates.
@@ -235,6 +252,11 @@ def count_unique_simhash(items: Sequence[str], threshold: int = 3) -> int:
     if not items:
         return 0
 
+    # Use Rust implementation if available - it releases GIL during computation
+    if _rust_simhash_available and _rust_count_unique_simhash is not None:
+        return _rust_count_unique_simhash(list(items), threshold)
+
+    # Fall back to pure Python implementation
     # Compute fingerprints
     fingerprints = [_simhash(item) for item in items]
 

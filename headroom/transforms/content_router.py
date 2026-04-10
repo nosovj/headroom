@@ -73,7 +73,7 @@ def _detect_content(content: str) -> DetectionResult:
         result = _magika_detector.detect(content)
         # Map Magika ContentType to router's expected format
         type_map = {
-            "json": ContentType.JSON_ARRAY,
+            "json": ContentType.PLAIN_TEXT,  # Don't trust Magika's JSON detection - verify below
             "code": ContentType.SOURCE_CODE,
             "log": ContentType.BUILD_OUTPUT,
             "markdown": ContentType.PLAIN_TEXT,
@@ -81,6 +81,21 @@ def _detect_content(content: str) -> DetectionResult:
             "unknown": ContentType.PLAIN_TEXT,
         }
         mapped_type = type_map.get(result.content_type.value, ContentType.PLAIN_TEXT)
+        
+        # CRITICAL: Magika often misclassifies logs as "json" (raw_label=csv).
+        # Only use JSON_ARRAY if content actually starts with '[' and parses as JSON.
+        # This prevents SmartCrusher from being routed content it can't handle.
+        if result.content_type.value == "json" or mapped_type == ContentType.JSON_ARRAY:
+            if not content.strip().startswith("["):
+                # Doesn't start with [ - can't be JSON array, fall through
+                return detect_content_type(content)
+            # Use fast orjson-based parsing
+            from ..compression.smart.parse import safe_json_loads
+            parsed, success = safe_json_loads(content)
+            if not success:
+                # Not valid JSON - fall through to regex detection
+                return detect_content_type(content)
+        
         return DetectionResult(
             content_type=mapped_type,
             confidence=result.confidence,

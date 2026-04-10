@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-04-09T20:45:00Z",
+  "description": "Before cutover - 8787 (unified proxy) vs 8788 (optimized fork)",
+  "payload": {
+    "items": 500,
+    "bytes_approx": 289033
+  },
+  "results": {
+    "8787_unified_proxy": {
+      "runs": [523.8, 152.1, 284.0, 138.4, 184.3],
+      "avg_ms": 256.5,
+      "notes": "Cold start ~500ms, warm ~150ms"
+    },
+    "8788_optimized_fork": {
+      "runs": [3.9, 3.1, 2.3, 1.9, 1.9],
+      "avg_ms": 2.6,
+      "notes": "Consistently 1.9-3.9ms"
+    }
+  },
+  "speedup_ratio": 98.7
+}

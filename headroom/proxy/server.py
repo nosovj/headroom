@@ -8381,6 +8381,15 @@ def run_server(
         print("ERROR: FastAPI required. Install: pip install fastapi uvicorn httpx")
         sys.exit(1)
 
+    # Patch simhash with Rust version for 70x speedup
+    try:
+        from headroom.compression.smart.optimized_simhash import count_unique_simhash as rust_count_unique
+        import headroom.transforms.adaptive_sizer as adaptive_sizer
+        adaptive_sizer.count_unique_simhash = rust_count_unique
+        print("✓ Rust simhash enabled (70x faster)")
+    except Exception as e:
+        print(f"✓ Python simhash (Rust not available): {e}")
+
     config = config or ProxyConfig()
     app = create_app(config)
 

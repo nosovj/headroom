@@ -266,6 +266,62 @@ def count_tokens_cached(
     return token_count
 
 
+class CachingTokenCounter:
+    """Wrapper that adds LRU caching to any tokenizer.
+
+    This wraps a tokenizer and caches count_text() and count_messages()
+    results using the global token cache.
+    """
+
+    def __init__(self, tokenizer: Any, session_id: str = "default"):
+        """
+        Args:
+            tokenizer: Any object implementing TokenCounter protocol.
+            session_id: Session ID for cache keying.
+        """
+        self._tokenizer = tokenizer
+        self._session_id = session_id
+        self._cache = get_token_cache()
+
+    def count_text(self, text: str) -> int:
+        """Count tokens with caching."""
+        # Try cache first
+        cached = self._cache.get(self._session_id, text)
+        if cached is not None:
+            return cached
+
+        # Count tokens
+        result = self._tokenizer.count_text(text)
+
+        # Cache result
+        self._cache.put(self._session_id, text, result)
+
+        return result
+
+    def count_messages(self, messages: list[dict[str, Any]]) -> int:
+        """Count tokens in messages with caching."""
+        import json
+        # Serialize messages for cache key
+        cache_key = json.dumps(messages, sort_keys=True)
+
+        # Try cache first
+        cached = self._cache.get(self._session_id, cache_key)
+        if cached is not None:
+            return cached
+
+        # Count tokens
+        result = self._tokenizer.count_messages(messages)
+
+        # Cache result
+        self._cache.put(self._session_id, cache_key, result)
+
+        return result
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate unknown attributes to underlying tokenizer."""
+        return getattr(self._tokenizer, name)
+
+
 def invalidate_session(session_id: str) -> int:
     """Invalidate cache for a session."""
     cache = get_token_cache()

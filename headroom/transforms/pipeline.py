@@ -168,6 +168,12 @@ class TransformPipeline:
         """
         tokenizer = self._get_tokenizer(model)
 
+        # Wrap tokenizer with caching if session_id is provided
+        session_id = kwargs.get("session_id")
+        if session_id:
+            from headroom.cache.tokenizer_cache import CachingTokenCounter
+            tokenizer = CachingTokenCounter(tokenizer, session_id)
+
         # Get model limit from kwargs (should be set by client)
         model_limit = kwargs.get("model_limit")
         if model_limit is None:

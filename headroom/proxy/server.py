@@ -2198,6 +2198,7 @@ class HeadroomProxy:
                 messages=messages,
                 model=model,
                 model_limit=context_limit,
+                session_id=None,  # No session tracking for compress endpoint
             )
 
             return JSONResponse(
@@ -2432,6 +2433,7 @@ class HeadroomProxy:
                                 context=extract_user_query(working_messages),
                                 frozen_message_count=frozen_message_count,
                                 biases=biases,
+                                session_id=session_id,
                             )
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -2459,6 +2461,7 @@ class HeadroomProxy:
                                 context=extract_user_query(messages),
                                 frozen_message_count=frozen_message_count,
                                 biases=biases,
+                                session_id=session_id,
                             )
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -3274,6 +3277,7 @@ class HeadroomProxy:
                     model=model,
                     model_limit=context_limit,
                     context=extract_user_query(messages),
+                    session_id=None,  # No session tracking for Anthropic batch
                 )
 
                 optimized_messages = result.messages
@@ -3727,6 +3731,7 @@ class HeadroomProxy:
                     model=model,
                     model_limit=context_limit,
                     context=extract_user_query(messages),
+                    session_id=None,  # No session tracking for Google batch
                 )
 
                 optimized_messages = result.messages
@@ -5213,6 +5218,7 @@ class HeadroomProxy:
                                 context=extract_user_query(working_messages),
                                 frozen_message_count=openai_frozen_count,
                                 biases=_hook_biases,
+                                session_id=openai_session_id,
                             )
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -5238,6 +5244,7 @@ class HeadroomProxy:
                                 context=extract_user_query(messages),
                                 frozen_message_count=openai_frozen_count,
                                 biases=_hook_biases,
+                                session_id=openai_session_id,
                             )
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -5980,6 +5987,7 @@ class HeadroomProxy:
                             model=model,
                             model_limit=context_limit,
                             context=extract_user_query(messages),
+                            session_id=None,  # No session tracking for Azure batch
                         )
                         compressed_messages = result.messages
                         # Use pipeline's token counts for consistency with pipeline logs
@@ -6295,6 +6303,7 @@ class HeadroomProxy:
                             model=model,
                             model_limit=context_limit,
                             context=extract_user_query(messages),
+                            session_id=None,  # No session tracking for Responses API
                         )
                     ),
                     timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -6538,6 +6547,7 @@ class HeadroomProxy:
                                     model=model,
                                     model_limit=context_limit,
                                     context=extract_user_query(messages),
+                                    session_id=None,  # No session tracking for WS batch
                                 )
                             ),
                             timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -6783,6 +6793,7 @@ class HeadroomProxy:
                     model=model,
                     model_limit=context_limit,
                     context=extract_user_query(messages),
+                    session_id=None,  # No session tracking for Gemini completions
                 )
                 if result.messages != messages:
                     optimized_messages = result.messages
@@ -7077,6 +7088,7 @@ class HeadroomProxy:
                     model=model,
                     model_limit=context_limit,
                     context=extract_user_query(messages),
+                    session_id=None,  # No session tracking for Gemini countTokens
                 )
                 if result.messages != messages:
                     optimized_messages = result.messages

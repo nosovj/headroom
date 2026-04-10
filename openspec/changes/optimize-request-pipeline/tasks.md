@@ -1,12 +1,12 @@
 ## 1. Worker Pool Infrastructure
 
-- [ ] 1.1 Create `crates/headroom-workers/` Rust crate with PyO3 bindings
-- [ ] 1.2 Implement tokio mpsc channel for Python-Rust communication
-- [ ] 1.3 Implement worker pool with configurable size (default: CPU count)
-- [ ] 1.4 Add worker supervision (panic catching, auto-restart)
-- [ ] 1.5 Add ping/pong health check between Python and workers
-- [ ] 1.6 Configure via `HEADROOM_WORKER_POOL_SIZE` env var
-- [ ] 1.7 Write integration test for worker pool lifecycle
+- [x] 1.1 Create `crates/headroom-workers/` Rust crate with PyO3 bindings
+- [x] 1.2 Implement tokio mpsc channel for Python-Rust communication
+- [x] 1.3 Implement worker pool with configurable size (default: CPU count)
+- [x] 1.4 Add worker supervision (panic catching, auto-restart)
+- [x] 1.5 Add ping/pong health check between Python and workers
+- [x] 1.6 Configure via `HEADROOM_WORKER_POOL_SIZE` env var
+- [x] 1.7 Write integration test for worker pool lifecycle
 
 ## 2. Simhash Worker Migration
 

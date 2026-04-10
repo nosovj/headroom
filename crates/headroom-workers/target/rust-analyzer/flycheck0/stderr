@@ -1,0 +1,10 @@
+warning: unused config key `build.linker` in `/home/joe/.cargo/config.toml`
+    Updating crates.io index
+error: failed to select a version for `pyo3`.
+    ... required by package `headroom-workers v0.1.0 (/home/joe/llm/headroom-fork/crates/headroom-workers)`
+versions that meet the requirements `^0.20` are: 0.20.3, 0.20.2, 0.20.1, 0.20.0
+
+package `headroom-workers` depends on `pyo3` with feature `async` but `pyo3` does not have that feature.
+
+
+failed to select a version for `pyo3` which could resolve this conflict

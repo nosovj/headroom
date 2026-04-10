@@ -1959,6 +1959,11 @@ class ContentRouter(Transform):
             parts.append(f"{route_counts['cache_hit']} cache hits")
         if route_counts.get("cache_miss"):
             parts.append(f"{route_counts['cache_miss']} cache misses")
+        if transforms_applied:
+            n = len(transforms_applied)
+            sample = ",".join(transforms_applied[:3])
+            suffix = "..." if n > 3 else ""
+            parts.append("transforms_applied=%d[%s%s]" % (n, sample, suffix))
         cs = self._cache.stats
         if cs["cache_size"] > 0 or cs["cache_skip_size"] > 0:
             parts.append(
@@ -1972,7 +1977,15 @@ class ContentRouter(Transform):
                 ", ".join(parts),
             )
 
+        # DEBUG: Log what we're about to return
         all_transforms = lifecycle_transforms + transforms_applied
+        logger.info(
+            "content_router: FINAL transforms - lifecycle=%d, router=%d, total=%d, returning=%s",
+            len(lifecycle_transforms),
+            len(transforms_applied),
+            len(all_transforms),
+            "router:noop" if not all_transforms else all_transforms[:3],
+        )
         return TransformResult(
             messages=transformed_messages,
             tokens_before=tokens_before,

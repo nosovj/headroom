@@ -2468,6 +2468,16 @@ class HeadroomProxy:
                     )
 
                     if result.messages != messages:
+                        logger.info(
+                            "[%s] DEBUG: compression changed messages - "
+                            "original_tokens=%d, result.tokens_before=%d, result.tokens_after=%d, "
+                            "transforms=%s",
+                            request_id,
+                            original_tokens,
+                            result.tokens_before,
+                            result.tokens_after,
+                            result.transforms_applied,
+                        )
                         optimized_messages = result.messages
                         transforms_applied = result.transforms_applied
                         pipeline_timing = result.timing
@@ -3127,7 +3137,8 @@ class HeadroomProxy:
                     f"tok_saved={tokens_saved} "
                     f"cache_read={cr} cache_write={cw} cache_hit_pct={chp} "
                     f"opt_ms={optimization_latency:.0f} "
-                    f"transforms={_summarize_transforms(transforms_applied)}"
+                    f"transforms={_summarize_transforms(transforms_applied)} "
+                    f"transforms_count={len(transforms_applied)}"  # DEBUG
                     f"{' timing=' + timing_str if timing_str else ''}"
                 )
 
@@ -6553,6 +6564,18 @@ class HeadroomProxy:
                             timeout=COMPRESSION_TIMEOUT_SECONDS,
                         )
 
+                        # DEBUG: Always log result state
+                        logger.info(
+                            "[%s] DEBUG: result.messages %s messages (len=%d), "
+                            "result.tokens_before=%d, result.tokens_after=%d, "
+                            "result.transforms_applied=%s",
+                            request_id,
+                            "==" if result.messages == messages else "!=",
+                            len(result.messages),
+                            result.tokens_before,
+                            result.tokens_after,
+                            result.transforms_applied[:5] if result.transforms_applied else "[]",
+                        )
                         if result.messages != messages:
                             opt = result.messages
                             if instructions and opt and opt[0].get("role") == "system":

@@ -1168,11 +1168,10 @@ class ContentRouter(Transform):
     def _try_rust_compressor(
         self, content: str
     ) -> tuple[str, int]:
-        """Fast Rust-based zstd compression as fast path for TEXT strategy.
+        """Fast Rust-based zstd compression for TEXT strategy.
 
-        This provides sub-millisecond compression with good ratios for typical
-        text content. Falls back to ML compressor if Rust is unavailable or
-        ratio is poor (>0.8).
+        This provides sub-millisecond compression with excellent ratios for typical
+        text content. Rust compression is the primary and final path - no ML fallback.
 
         Args:
             content: Content to compress.
@@ -1182,21 +1181,23 @@ class ContentRouter(Transform):
         """
         # Check env var for disabling Rust compression
         if os.environ.get("HEADROOM_USE_RUST_COMPRESSION", "true").lower() == "false":
-            return self._try_ml_compressor(content, "", None)
+            # Rust disabled - return passthrough
+            return content, len(content.split())
 
         try:
             from ..workers import compress_text
 
             result = compress_text(content, "general")
-            if result.strategy != "unavailable" and result.ratio < 0.8:
-                return result.compressed, len(result.compressed.split())
-            # Ratio too poor, fall back to ML
-            logger.debug("Rust compression ratio %.2f too poor, falling back to ML", result.ratio)
-        except Exception as e:
-            logger.debug("Rust compression unavailable: %s", e)
+            if result.strategy == "unavailable":
+                logger.debug("Rust compression unavailable")
+                return content, len(content.split())
 
-        # Fall back to ML
-        return self._try_ml_compressor(content, "", None)
+            # Return result (ratio check already done in Rust)
+            return result.compressed, len(result.compressed.split())
+
+        except Exception as e:
+            logger.debug("Rust compression failed: %s", e)
+            return content, len(content.split())
 
     def _strategy_from_detection_type(self, content_type: ContentType) -> CompressionStrategy:
         """Get strategy from ContentType enum."""

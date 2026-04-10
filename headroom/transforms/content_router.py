@@ -653,6 +653,13 @@ class ContentRouter(Transform):
 
         self._cache = CompressionCache()
 
+        # Compressor health tracking - surfaces failures to /stats
+        self._compressor_health: dict[str, int] = {
+            'kompress_failures': 0,
+            'log_compressor_failures': 0,
+            'rust_fallback_count': 0,
+        }
+
         # MinHash LSH index for deduplication (session-scoped)
         self._minhash_index: Any = None
         self._minhash_threshold = float(os.environ.get("HEADROOM_SIMILARITY_THRESHOLD", "0.95"))
@@ -714,6 +721,29 @@ class ContentRouter(Transform):
         self._minhash_index = None
         self._dedup_cache.clear()
         logger.debug("Session data cleared")
+
+    def get_health(self) -> dict[str, Any]:
+        """Get compressor health stats for monitoring.
+
+        Returns:
+            Dict with failure counts and compressor availability.
+        """
+        return {
+            'kompress_available': self._get_kompress() is not None,
+            'kompress_failures': self._compressor_health.get('kompress_failures', 0),
+            'log_compressor_available': self._get_log_compressor() is not None,
+            'log_compressor_failures': self._compressor_health.get('log_compressor_failures', 0),
+            'rust_available': self._is_rust_compression_available(),
+        }
+
+    def _is_rust_compression_available(self) -> bool:
+        """Check if Rust compression is available."""
+        try:
+            from ..workers import compress_text
+            result = compress_text("test", "general")
+            return result.strategy != "unavailable"
+        except Exception:
+            return False
 
     def _record_to_toin(
         self,
@@ -1144,6 +1174,7 @@ class ContentRouter(Transform):
         compressed_tokens: int | None = None
 
         # Primary: Kompress — downloads from chopratejas/kompress-base on first use
+        compressor_failures = 0
         if self.config.enable_kompress:
             compressor = self._get_kompress()
             if compressor:
@@ -1154,7 +1185,16 @@ class ContentRouter(Transform):
                     compressed = result.compressed
                     compressed_tokens = result.compressed_tokens
                 except Exception as e:
-                    logger.warning("Kompress failed: %s", e)
+                    compressor_failures += 1
+                    logger.error(
+                        "Kompress FAILED: %s. Content returned uncompressed. "
+                        "This will impact token savings.",
+                        e
+                    )
+                    # Track failure in stats
+                    self._compressor_health['kompress_failures'] = (
+                        self._compressor_health.get('kompress_failures', 0) + 1
+                    )
 
         if compressed is None:
             return content, len(content.split())

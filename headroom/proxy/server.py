@@ -7360,6 +7360,27 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
     )
     app.state.proxy = proxy
 
+    def _get_compressor_health(proxy_instance) -> dict:
+        """Extract compressor health from proxy's transform pipelines."""
+        health = {
+            'kompress_available': False,
+            'kompress_failures': 0,
+            'log_compressor_available': False,
+            'log_compressor_failures': 0,
+            'rust_available': False,
+        }
+        try:
+            # Check both pipelines for ContentRouter
+            for pipeline in [proxy_instance.anthropic_pipeline, proxy_instance.openai_pipeline]:
+                for transform in pipeline.transforms:
+                    if hasattr(transform, 'get_health'):
+                        h = transform.get_health()
+                        health.update(h)
+                        break
+        except Exception:
+            pass
+        return health
+
     # CORS
     app.add_middleware(
         CORSMiddleware,
@@ -7606,6 +7627,7 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
             "cli_filtering": cli_filtering_stats,
             "cache": await proxy.cache.stats() if proxy.cache else None,
             "rate_limiter": await proxy.rate_limiter.stats() if proxy.rate_limiter else None,
+            "compressor_health": _get_compressor_health(proxy),
             "recent_requests": proxy.logger.get_recent(10) if proxy.logger else [],
             # New optimization modules
             "worker_pool": await _get_worker_pool_stats(),

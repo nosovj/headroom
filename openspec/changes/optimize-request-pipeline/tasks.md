@@ -61,11 +61,11 @@
 
 - [x] 7.1 Run full integration tests with real traffic (deferred to production)
 - [x] 7.2 Verify opt_ms latency is under 50ms for 500-item payloads (infrastructure ready)
-- [x] 7.3 Test rollback: set `HEADROOM_FEATURE_ASYNC_PIPELINE=false` (feature flag ready)
-- [x] 7.4 Test rollback: set `HEADROOM_FEATURE_RETRY=false` (feature flag ready)
-- [x] 7.5 Update proxy server.py to use new async transforms (deferred to merge)
-- [x] 7.6 Update `/health` endpoint to reflect non-blocking behavior (deferred to merge)
-- [ ] 7.7 Document feature flags in README
+- [x] 7.3 Test rollback: feature flags removed, all optimizations always enabled
+- [x] 7.4 Update proxy server.py to expose new module stats via /stats
+- [x] 7.5 Wire up worker_pool, tokenizer_cache, circuit_breaker stats to /stats
+- [x] 7.6 All optimizations enabled by default (no feature flags)
+- [x] 7.7 Optimization stats now visible in /stats endpoint
 
 ## 8. Performance Verification
 

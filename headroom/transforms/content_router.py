@@ -1076,15 +1076,9 @@ class ContentRouter(Transform):
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question)
 
             elif strategy == CompressionStrategy.TEXT:
-                # Fast path: Try Rust zstd compression first (sub-ms)
-                # Fall back to ML if Rust is unavailable or poor ratio
-                # Check dedup first
-                existing = self._check_dedup(content)
-                if existing:
-                    return existing, len(existing.split())
-                compressed, compressed_tokens = self._try_rust_compressor(content)
-                if compressed and len(compressed) < len(content):
-                    self._record_dedup(content, compressed)
+                # Prefer Kompress ML compressor for text
+                # Passes through unchanged if Kompress not available
+                compressed, compressed_tokens = self._try_ml_compressor(content, context, question)
 
         except Exception as e:
             logger.warning("Compression with %s failed: %s", strategy.value, e)
@@ -1170,8 +1164,10 @@ class ContentRouter(Transform):
     ) -> tuple[str, int]:
         """Fast Rust-based zstd compression for TEXT strategy.
 
-        This provides sub-millisecond compression with excellent ratios for typical
-        text content. Rust compression is the primary and final path - no ML fallback.
+        Primary path: Rust zstd provides sub-millisecond compression with
+        excellent ratio for repetitive text content.
+
+        Fallback: If Rust is disabled OR ratio is poor (>0.8), fall back to ML.
 
         Args:
             content: Content to compress.
@@ -1181,8 +1177,7 @@ class ContentRouter(Transform):
         """
         # Check env var for disabling Rust compression
         if os.environ.get("HEADROOM_USE_RUST_COMPRESSION", "true").lower() == "false":
-            # Rust disabled - return passthrough
-            return content, len(content.split())
+            return self._try_ml_compressor(content, "", None)
 
         try:
             from ..workers import compress_text
@@ -1190,14 +1185,18 @@ class ContentRouter(Transform):
             result = compress_text(content, "general")
             if result.strategy == "unavailable":
                 logger.debug("Rust compression unavailable")
-                return content, len(content.split())
+                return self._try_ml_compressor(content, "", None)
 
-            # Return result (ratio check already done in Rust)
+            # If ratio is poor, fall back to ML for better quality
+            if result.ratio > 0.8:
+                logger.debug("Rust ratio %.2f poor, falling back to ML", result.ratio)
+                return self._try_ml_compressor(content, "", None)
+
             return result.compressed, len(result.compressed.split())
 
         except Exception as e:
             logger.debug("Rust compression failed: %s", e)
-            return content, len(content.split())
+            return self._try_ml_compressor(content, "", None)
 
     def _strategy_from_detection_type(self, content_type: ContentType) -> CompressionStrategy:
         """Get strategy from ContentType enum."""

@@ -1872,9 +1872,9 @@ class ContentRouter(Transform):
                 route_counts["user_msg"] += 1
                 continue
 
-            if not content or len(content.split()) < 5:
-                # Skip very small content (<5 words) - below this compression overhead isn't worth it
-                # Lowered from 20 to 5 to allow more compression with aggressive settings
+            if not content or len(content.split()) < 3:
+                # Skip very small content (<3 words) - below this compression overhead isn't worth it
+                # Lowered from 20 to 3 to allow maximum compression
                 result_slots[i] = message
                 route_counts["small"] += 1
                 continue

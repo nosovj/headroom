@@ -442,8 +442,8 @@ class ContentRouterConfig:
     # Original headroom-ai achieved 80%+ compression by being very aggressive.
     # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
-    min_ratio_relaxed: float = 0.15  # when context is mostly empty - accept >85% compression
-    min_ratio_aggressive: float = 0.05  # when context is nearly full - accept >95% compression
+    min_ratio_relaxed: float = 0.05  # when context is mostly empty - accept >95% compression
+    min_ratio_aggressive: float = 0.02  # when context is nearly full - accept >98% compression
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression

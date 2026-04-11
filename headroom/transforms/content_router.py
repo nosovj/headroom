@@ -442,8 +442,8 @@ class ContentRouterConfig:
     # Original headroom-ai achieved 80%+ compression by being very aggressive.
     # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
-    min_ratio_relaxed: float = 0.30  # when context is mostly empty - accept >70% compression
-    min_ratio_aggressive: float = 0.10  # when context is nearly full - accept >90% compression
+    min_ratio_relaxed: float = 0.15  # when context is mostly empty - accept >85% compression
+    min_ratio_aggressive: float = 0.05  # when context is nearly full - accept >95% compression
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression
@@ -1135,8 +1135,8 @@ class ContentRouter(Transform):
                         compressed, compressed_tokens = result.compressed, result.compressed_tokens
                 if compressed is None:
                     # Fallback to Kompress with aggressive target
-                    # Use min_ratio_aggressive * 0.5 to force significant compression
-                    effective_target = self.config.min_ratio_aggressive * 0.5
+                    # Use min_ratio_aggressive * 0.3 to force significant compression
+                    effective_target = self.config.min_ratio_aggressive * 0.3
                     compressed, compressed_tokens = self._try_ml_compressor(
                         content, context, question, effective_target
                     )
@@ -1156,8 +1156,8 @@ class ContentRouter(Transform):
                                 crush_result.strategy,
                             )
                             # Force Kompress to compress even if ratio will be poor
-                            # Use min_ratio_aggressive * 0.5 for VERY aggressive compression
-                            effective_target = self.config.min_ratio_aggressive * 0.5
+                            # Use min_ratio_aggressive * 0.3 for VERY aggressive compression
+                            effective_target = self.config.min_ratio_aggressive * 0.3
                             compressed, compressed_tokens = self._try_ml_compressor(
                                 content, context, question, target_ratio=effective_target
                             )
@@ -1206,14 +1206,14 @@ class ContentRouter(Transform):
             elif strategy == CompressionStrategy.KOMPRESS:
                 # Force more aggressive compression using min_ratio_aggressive * 0.5
                 # This ensures we hit our target even when ML model is conservative
-                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.5)
+                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.3)
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:
                 # Prefer Kompress ML compressor for text
                 # Force more aggressive compression to meet our min_ratio targets
                 # Passes through unchanged if Kompress not available
-                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.5)
+                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.3)
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
         except Exception as e:
@@ -1234,7 +1234,7 @@ class ContentRouter(Transform):
             # Force truncation if compression didn't meet target_ratio
             # This ensures we get at least the target compression even when ML model is conservative
             # Use the effective target (either passed in or derived from config)
-            truncation_target = target_ratio if target_ratio is not None else (self.config.min_ratio_aggressive * 0.5)
+            truncation_target = target_ratio if target_ratio is not None else (self.config.min_ratio_aggressive * 0.3)
             if original_tokens > 20:
                 current_ratio = compressed_tokens / original_tokens if original_tokens > 0 else 1.0
                 if current_ratio > truncation_target:  # If we kept more than target, reduce to target

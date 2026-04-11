@@ -1233,16 +1233,18 @@ class ContentRouter(Transform):
             
             # Force truncation if compression didn't meet target_ratio
             # This ensures we get at least the target compression even when ML model is conservative
-            if target_ratio is not None and original_tokens > 20:
+            # Use the effective target (either passed in or derived from config)
+            truncation_target = target_ratio if target_ratio is not None else (self.config.min_ratio_aggressive * 0.5)
+            if original_tokens > 20:
                 current_ratio = compressed_tokens / original_tokens if original_tokens > 0 else 1.0
-                if current_ratio > target_ratio:  # If we kept more than target, reduce to target
+                if current_ratio > truncation_target:  # If we kept more than target, reduce to target
                     words = content.split()
-                    target_words = max(1, int(len(words) * target_ratio))
+                    target_words = max(1, int(len(words) * truncation_target))
                     compressed = " ".join(words[:target_words])
                     compressed_tokens = target_words
                     logger.debug(
                         "Forced truncation: kept %d/%d words (target_ratio=%.2f, was %.2f)",
-                        target_words, len(words), target_ratio, current_ratio
+                        target_words, len(words), truncation_target, current_ratio
                     )
             
             return compressed, compressed_tokens

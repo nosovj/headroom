@@ -3121,28 +3121,31 @@ class HeadroomProxy:
 
                 # Log request
                 if self.logger:
-                    self.logger.log(
-                        RequestLog(
-                            request_id=request_id,
-                            timestamp=datetime.now().isoformat(),
-                            provider="anthropic",
-                            model=model,
-                            input_tokens_original=original_tokens,
-                            input_tokens_optimized=optimized_tokens,
-                            output_tokens=output_tokens,
-                            tokens_saved=tokens_saved,
-                            savings_percent=(tokens_saved / original_tokens * 100)
-                            if original_tokens > 0
-                            else 0,
-                            optimization_latency_ms=optimization_latency,
-                            total_latency_ms=total_latency,
-                            tags=tags,
-                            cache_hit=cache_hit,
-                            transforms_applied=transforms_applied,
-                            waste_signals=waste_signals_dict,
-                            request_messages=messages if self.config.log_full_messages else None,
+                    try:
+                        self.logger.log(
+                            RequestLog(
+                                request_id=request_id,
+                                timestamp=datetime.now().isoformat(),
+                                provider="anthropic",
+                                model=model,
+                                input_tokens_original=original_tokens,
+                                input_tokens_optimized=optimized_tokens,
+                                output_tokens=output_tokens,
+                                tokens_saved=tokens_saved,
+                                savings_percent=(tokens_saved / original_tokens * 100)
+                                if original_tokens > 0
+                                else 0,
+                                optimization_latency_ms=optimization_latency,
+                                total_latency_ms=total_latency,
+                                tags=tags,
+                                cache_hit=cache_hit,
+                                transforms_applied=transforms_applied,
+                                waste_signals=waste_signals_dict,
+                                request_messages=messages if self.config.log_full_messages else None,
+                            )
                         )
-                    )
+                    except Exception as e:
+                        logger.warning(f"[{request_id}] Failed to log request: {e}")
 
                 # Structured perf log line for `headroom perf` analysis
                 num_msgs = len(messages)

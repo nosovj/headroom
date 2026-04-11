@@ -1872,9 +1872,9 @@ class ContentRouter(Transform):
                 route_counts["user_msg"] += 1
                 continue
 
-            if not content or len(content.split()) < 3:
-                # Skip very small content (<3 words) - below this compression overhead isn't worth it
-                # Lowered from 20 to 3 to allow maximum compression
+            if not content or len(content.split()) < 1:
+                # Skip empty content only - compress EVERYTHING else for maximum savings
+                # Set to 0 to ensure we try to compress all messages
                 result_slots[i] = message
                 route_counts["small"] += 1
                 continue
@@ -2088,7 +2088,7 @@ class ContentRouter(Transform):
         if route_counts["user_msg"]:
             parts.append(f"{route_counts['user_msg']} skipped (user)")
         if route_counts["small"]:
-            parts.append(f"{route_counts['small']} skipped (<20 words)")
+            parts.append(f"{route_counts['small']} skipped (<3 words)")
         if route_counts["recent_code"]:
             parts.append(f"{route_counts['recent_code']} protected (recent code)")
         if route_counts["analysis_ctx"]:

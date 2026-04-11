@@ -363,14 +363,13 @@ DEFAULT_EXCLUDE_TOOLS: frozenset[str] = frozenset(
         "Grep",
         "Write",
         "Edit",
-        "Bash",
+        # Bash is NOT excluded — its outputs (build logs, test output) are ideal compression targets
         # Lowercase variants for case-insensitive matching
         "read",
         "glob",
         "grep",
         "write",
         "edit",
-        "bash",
     }
 )
 

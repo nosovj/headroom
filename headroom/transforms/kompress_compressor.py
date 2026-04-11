@@ -441,6 +441,32 @@ class KompressCompressor(Transform):
             logger.warning("Kompress compression failed: %s", e)
             return self._passthrough(content, n_words)
 
+    def _truncate_to_ratio(self, content: str, n_words: int, target_ratio: float) -> KompressResult:
+        """Fallback: truncate content to target ratio when ML compression fails.
+        
+        This is a last-resort when:
+        - Kompress returns inflation (ratio >= 1.0)
+        - Model fails completely
+        
+        Simply keeps the first N words to achieve target_ratio.
+        """
+        target_words = max(1, int(n_words * target_ratio))
+        words = content.split()
+        truncated = " ".join(words[:target_words])
+        
+        logger.debug(
+            "_truncate_to_ratio: kept %d/%d words (target_ratio=%.2f)",
+            target_words, n_words, target_ratio
+        )
+        
+        return KompressResult(
+            compressed=truncated,
+            original=content,
+            original_tokens=n_words,
+            compressed_tokens=target_words,
+            compression_ratio=target_ratio,
+        )
+
     def _passthrough(self, content: str, n_words: int) -> KompressResult:
         return KompressResult(
             compressed=content,

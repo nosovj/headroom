@@ -427,10 +427,10 @@ class ContentRouterConfig:
     # Old Reads beyond this window become compressible even though they are
     # in DEFAULT_EXCLUDE_TOOLS.  0.0 = always exclude all (old behavior).
     # 
-    # NOTE: Lowered to 0.1 for 80%+ compression target - more Read/Glob outputs
+    # NOTE: Lowered to 0.0 for maximum compression - ALL Read/Glob outputs
     # can now be compressed since context pressure demands aggressive savings.
     protect_recent_reads_fraction: float = (
-        0.1  # 0.1 = protect only most recent 10% of excluded-tool outputs
+        0.0  # 0.0 = compress ALL excluded-tool outputs
     )
 
     # Adaptive compression ratio: scales with context pressure.
@@ -1872,8 +1872,9 @@ class ContentRouter(Transform):
                 route_counts["user_msg"] += 1
                 continue
 
-            if not content or len(content.split()) < 20:
-                # Skip very small content (<20 words) - below this compression overhead isn't worth it
+            if not content or len(content.split()) < 5:
+                # Skip very small content (<5 words) - below this compression overhead isn't worth it
+                # Lowered from 20 to 5 to allow more compression with aggressive settings
                 result_slots[i] = message
                 route_counts["small"] += 1
                 continue

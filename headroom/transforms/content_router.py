@@ -1136,7 +1136,7 @@ class ContentRouter(Transform):
                 if compressed is None:
                     # Fallback to Kompress with aggressive target
                     # Use min_ratio_aggressive * 0.3 to force significant compression
-                    effective_target = self.config.min_ratio_aggressive * 0.3
+                    effective_target = self.config.min_ratio_aggressive * 0.1
                     compressed, compressed_tokens = self._try_ml_compressor(
                         content, context, question, effective_target
                     )
@@ -1157,7 +1157,7 @@ class ContentRouter(Transform):
                             )
                             # Force Kompress to compress even if ratio will be poor
                             # Use min_ratio_aggressive * 0.3 for VERY aggressive compression
-                            effective_target = self.config.min_ratio_aggressive * 0.3
+                            effective_target = self.config.min_ratio_aggressive * 0.1
                             compressed, compressed_tokens = self._try_ml_compressor(
                                 content, context, question, target_ratio=effective_target
                             )
@@ -1204,16 +1204,16 @@ class ContentRouter(Transform):
                         compressed_tokens = len(compressed.split()) if compressed else 0
 
             elif strategy == CompressionStrategy.KOMPRESS:
-                # Force more aggressive compression using min_ratio_aggressive * 0.5
+                # Force more aggressive compression using min_ratio_aggressive * 0.1
                 # This ensures we hit our target even when ML model is conservative
-                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.3)
+                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.1)
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:
                 # Prefer Kompress ML compressor for text
                 # Force more aggressive compression to meet our min_ratio targets
                 # Passes through unchanged if Kompress not available
-                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.3)
+                effective_target = target_ratio or (self.config.min_ratio_aggressive * 0.1)
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
         except Exception as e:
@@ -1234,7 +1234,7 @@ class ContentRouter(Transform):
             # Force truncation if compression didn't meet target_ratio
             # This ensures we get at least the target compression even when ML model is conservative
             # Use the effective target (either passed in or derived from config)
-            truncation_target = target_ratio if target_ratio is not None else (self.config.min_ratio_aggressive * 0.3)
+            truncation_target = target_ratio if target_ratio is not None else (self.config.min_ratio_aggressive * 0.1)
             if original_tokens > 20:
                 current_ratio = compressed_tokens / original_tokens if original_tokens > 0 else 1.0
                 if current_ratio > truncation_target:  # If we kept more than target, reduce to target
@@ -1872,9 +1872,9 @@ class ContentRouter(Transform):
                 route_counts["user_msg"] += 1
                 continue
 
-            if not content or len(content.split()) < 1:
-                # Skip empty content only - compress EVERYTHING else for maximum savings
-                # Set to 0 to ensure we try to compress all messages
+            if not content or len(content.split()) < 3:
+                # Skip very small content (<3 words) - below this compression overhead isn't worth it
+                # Lowered from 20 to 3 to allow maximum compression
                 result_slots[i] = message
                 route_counts["small"] += 1
                 continue

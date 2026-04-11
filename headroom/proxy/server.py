@@ -4888,6 +4888,33 @@ class HeadroomProxy:
                     cache_write_tokens=cache_write_tokens,
                 )
 
+                # Log request to RequestLogger
+                if self.logger:
+                    try:
+                        self.logger.log(
+                            RequestLog(
+                                request_id=request_id,
+                                timestamp=datetime.now().isoformat(),
+                                provider=provider,
+                                model=model,
+                                input_tokens_original=original_tokens,
+                                input_tokens_optimized=optimized_tokens,
+                                output_tokens=output_tokens,
+                                tokens_saved=tokens_saved,
+                                savings_percent=(tokens_saved / original_tokens * 100)
+                                if original_tokens > 0
+                                else 0,
+                                optimization_latency_ms=optimization_latency,
+                                total_latency_ms=total_latency,
+                                tags=tags,
+                                cache_hit=False,
+                                transforms_applied=transforms_applied,
+                                request_messages=None,
+                            )
+                        )
+                    except Exception as e:
+                        logger.warning(f"[{request_id}] Failed to log request: {e}")
+
         return StreamingResponse(
             generate(),
             media_type="text/event-stream",

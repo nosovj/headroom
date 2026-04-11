@@ -438,12 +438,12 @@ class ContentRouterConfig:
     # At high pressure (>80% full), use the aggressive threshold (accept anything helpful).
     # Linearly interpolates between the two.
     # 
-    # NOTE: Lowered thresholds significantly for 80%+ compression target.
+    # NOTE: EXTREMELY aggressive thresholds for 80%+ compression target.
     # Original headroom-ai achieved 80%+ compression by being very aggressive.
-    # We now allow much more compression by setting low thresholds.
+    # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
-    min_ratio_relaxed: float = 0.50  # when context is mostly empty - accept >50% compression
-    min_ratio_aggressive: float = 0.20  # when context is nearly full - accept >80% compression
+    min_ratio_relaxed: float = 0.30  # when context is mostly empty - accept >70% compression
+    min_ratio_aggressive: float = 0.10  # when context is nearly full - accept >90% compression
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression

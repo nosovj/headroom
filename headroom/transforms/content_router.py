@@ -1730,7 +1730,7 @@ class ContentRouter(Transform):
                 int(num_messages * self.config.protect_recent_reads_fraction),
             )
         else:
-            read_protection_window = num_messages  # 0.0 = protect all (old behavior)
+            read_protection_window = 0  # 0.0 = protect none (compress ALL excluded-tool outputs)
 
         # Adaptive compression ratio: scale with context pressure
         if model_limit > 0:

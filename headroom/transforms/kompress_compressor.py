@@ -378,12 +378,11 @@ class KompressCompressor(Transform):
                     attention_mask = attention_mask.to(device)
 
                 if target_ratio is not None:
-                    # ULTRA-AGGRESSIVE: For target_ratio <= 0.20 (seeking 80%+ savings),
-                    # use simple truncation instead of importance scoring.
-                    # Kompress's importance scoring is too conservative - it preserves
-                    # too many "important" words, resulting in high ratios (0.6-0.9).
+                    # ULTRA-AGGRESSIVE: For any target_ratio < 1.0, use simple truncation
+                    # instead of importance scoring. Kompress's importance scoring is too
+                    # conservative - it preserves too many "important" words.
                     # Simple truncation keeps the first N words, achieving exact target.
-                    if target_ratio <= 0.20:
+                    if target_ratio < 1.0:
                         # Use truncation: keep first N words per chunk
                         chunk_words = len(words[chunk_start:chunk_start + max_chunk_words])
                         num_keep = max(1, int(chunk_words * target_ratio))

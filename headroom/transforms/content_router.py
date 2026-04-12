@@ -401,7 +401,7 @@ class ContentRouterConfig:
     """
 
     # Enable/disable specific compressors
-    enable_code_aware: bool = True
+    enable_code_aware: bool = False  # Disable code_aware, use Kompress for all compression
     enable_kompress: bool = True  # Kompress: ModernBERT token compressor
     enable_smart_crusher: bool = True
     enable_search_compressor: bool = True
@@ -968,11 +968,11 @@ class ContentRouter(Transform):
             Selected strategy.
         """
         mapping = {
-            ContentType.SOURCE_CODE: CompressionStrategy.CODE_AWARE,
+            ContentType.SOURCE_CODE: CompressionStrategy.KOMPRESS,  # Use Kompress for aggressive compression
             ContentType.JSON_ARRAY: CompressionStrategy.SMART_CRUSHER,
-            ContentType.SEARCH_RESULTS: CompressionStrategy.SEARCH,
+            ContentType.SEARCH_RESULTS: CompressionStrategy.KOMPRESS,  # Use Kompress for search results
             ContentType.BUILD_OUTPUT: CompressionStrategy.LOG,
-            ContentType.GIT_DIFF: CompressionStrategy.DIFF,
+            ContentType.GIT_DIFF: CompressionStrategy.KOMPRESS,  # Use Kompress for diffs
             ContentType.HTML: CompressionStrategy.HTML,
             ContentType.PLAIN_TEXT: CompressionStrategy.KOMPRESS,
         }
@@ -1362,11 +1362,11 @@ class ContentRouter(Transform):
     def _strategy_from_detection_type(self, content_type: ContentType) -> CompressionStrategy:
         """Get strategy from ContentType enum."""
         mapping = {
-            ContentType.SOURCE_CODE: CompressionStrategy.CODE_AWARE,
+            ContentType.SOURCE_CODE: CompressionStrategy.KOMPRESS,  # Use Kompress for aggressive compression
             ContentType.JSON_ARRAY: CompressionStrategy.SMART_CRUSHER,
-            ContentType.SEARCH_RESULTS: CompressionStrategy.SEARCH,
+            ContentType.SEARCH_RESULTS: CompressionStrategy.KOMPRESS,  # Use Kompress for search results
             ContentType.BUILD_OUTPUT: CompressionStrategy.LOG,
-            ContentType.GIT_DIFF: CompressionStrategy.DIFF,
+            ContentType.GIT_DIFF: CompressionStrategy.KOMPRESS,  # Use Kompress for diffs
             ContentType.HTML: CompressionStrategy.HTML,
             ContentType.PLAIN_TEXT: CompressionStrategy.KOMPRESS,
         }

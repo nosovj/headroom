@@ -443,11 +443,11 @@ class ContentRouterConfig:
     # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
     # 
-    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.50
-    # min_ratio=0.50 means we ACCEPT any compression that keeps <= 50% (saves >= 50%)
-    # This accepts blocks with ratios up to 0.50
-    min_ratio_relaxed: float = 0.50  # when context is mostly empty - accept <=50% ratio  
-    min_ratio_aggressive: float = 0.50  # when context is nearly full - accept <=50% ratio
+    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.99
+    # min_ratio=0.99 means we ACCEPT any compression that keeps <= 99% (saves >= 1%)
+    # This accepts even marginal compression to maximize overall savings
+    min_ratio_relaxed: float = 0.99  # when context is mostly empty - accept <=99% ratio  
+    min_ratio_aggressive: float = 0.99  # when context is nearly full - accept <=99% ratio
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression
@@ -939,10 +939,11 @@ class ContentRouter(Transform):
         Returns:
             Selected compression strategy.
         """
-        # 1. Check for mixed content
+        # 1. Check for mixed content - use KOMPRESS for ultra-aggressive compression
+        # Mixed content is routed to Kompress with truncation for 80%+ target
         if is_mixed_content(content):
-            logger.debug("_determine_strategy: content is mixed, using MIXED")
-            return CompressionStrategy.MIXED
+            logger.debug("_determine_strategy: content is mixed, using KOMPRESS for aggressive compression")
+            return CompressionStrategy.KOMPRESS
 
         # 2. Detect content type from content itself
         detection = _detect_content(content)
@@ -969,11 +970,11 @@ class ContentRouter(Transform):
         """
         mapping = {
             ContentType.SOURCE_CODE: CompressionStrategy.KOMPRESS,  # Use Kompress for aggressive compression
-            ContentType.JSON_ARRAY: CompressionStrategy.SMART_CRUSHER,
+            ContentType.JSON_ARRAY: CompressionStrategy.KOMPRESS,  # Use Kompress for JSON too
             ContentType.SEARCH_RESULTS: CompressionStrategy.KOMPRESS,  # Use Kompress for search results
-            ContentType.BUILD_OUTPUT: CompressionStrategy.LOG,
+            ContentType.BUILD_OUTPUT: CompressionStrategy.KOMPRESS,  # Use Kompress for build output
             ContentType.GIT_DIFF: CompressionStrategy.KOMPRESS,  # Use Kompress for diffs
-            ContentType.HTML: CompressionStrategy.HTML,
+            ContentType.HTML: CompressionStrategy.KOMPRESS,  # Use Kompress for HTML
             ContentType.PLAIN_TEXT: CompressionStrategy.KOMPRESS,
         }
 
@@ -1209,7 +1210,7 @@ class ContentRouter(Transform):
 
             elif strategy == CompressionStrategy.KOMPRESS:
                 # Use 0.08 target for 92% compression on eligible blocks
-                effective_target = target_ratio or 0.08
+                effective_target = target_ratio or 0.05  # Aim for 95% compression
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:
@@ -1363,11 +1364,11 @@ class ContentRouter(Transform):
         """Get strategy from ContentType enum."""
         mapping = {
             ContentType.SOURCE_CODE: CompressionStrategy.KOMPRESS,  # Use Kompress for aggressive compression
-            ContentType.JSON_ARRAY: CompressionStrategy.SMART_CRUSHER,
+            ContentType.JSON_ARRAY: CompressionStrategy.KOMPRESS,  # Use Kompress for JSON too
             ContentType.SEARCH_RESULTS: CompressionStrategy.KOMPRESS,  # Use Kompress for search results
-            ContentType.BUILD_OUTPUT: CompressionStrategy.LOG,
+            ContentType.BUILD_OUTPUT: CompressionStrategy.KOMPRESS,  # Use Kompress for build output
             ContentType.GIT_DIFF: CompressionStrategy.KOMPRESS,  # Use Kompress for diffs
-            ContentType.HTML: CompressionStrategy.HTML,
+            ContentType.HTML: CompressionStrategy.KOMPRESS,  # Use Kompress for HTML
             ContentType.PLAIN_TEXT: CompressionStrategy.KOMPRESS,
         }
         return mapping.get(content_type, self.config.fallback_strategy)
@@ -1553,10 +1554,12 @@ class ContentRouter(Transform):
         """Get KompressCompressor (lazy load). Downloads from HuggingFace on first use."""
         if self._kompress is None:
             try:
-                from .kompress_compressor import KompressCompressor, is_kompress_available
+                from .kompress_compressor import KompressCompressor, KompressConfig, is_kompress_available
 
                 if is_kompress_available():
-                    self._kompress = KompressCompressor()
+                    # Disable CCR markers to avoid inflation on small content
+                    config = KompressConfig(enable_ccr=False)
+                    self._kompress = KompressCompressor(config)
             except ImportError:
                 logger.debug("Kompress dependencies not available")
         return self._kompress
@@ -1873,9 +1876,8 @@ class ContentRouter(Transform):
                 route_counts["user_msg"] += 1
                 continue
 
-            if not content or len(content.split()) < 3:
-                # Skip very small content (<3 words) - below this compression overhead isn't worth it
-                # Lowered from 20 to 3 to allow maximum compression
+            if not content or len(content.split()) < 1:
+                # Skip very small content (<1 word) - compress everything else for 80%+ target
                 result_slots[i] = message
                 route_counts["small"] += 1
                 continue
@@ -1907,11 +1909,12 @@ class ContentRouter(Transform):
             # (contains a CCR retrieval marker), skip recompression.
             # Recompressing would change byte content and break provider
             # prefix caching with no meaningful further reduction.
-            if "Retrieve more: hash=" in content or "Retrieve original: hash=" in content:
-                result_slots[i] = message
-                route_counts.setdefault("already_compressed", 0)
-                route_counts["already_compressed"] += 1
-                continue
+            # DISABLED for 80%+ compression target - we need to recompress everything
+            # if "Retrieve more: hash=" in content or "Retrieve original: hash=" in content:
+            #     result_slots[i] = message
+            #     route_counts.setdefault("already_compressed", 0)
+            #     route_counts["already_compressed"] += 1
+            #     continue
 
             # Route and compress based on content detection
             # Merge tool-specific bias with hook-provided bias (multiplicative)

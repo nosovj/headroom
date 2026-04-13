@@ -179,14 +179,23 @@ def _load_kompress_onnx() -> tuple[Any, Any]:
         logger.info("Downloading Kompress ONNX model from %s ...", HF_MODEL_ID)
         onnx_path = hf_hub_download(HF_MODEL_ID, "onnx/kompress-int8.onnx")
 
-        session = ort.InferenceSession(onnx_path)
+        # Use GPU if available (CUDA or TensorRT)
+        providers = []
+        available = ort.get_available_providers()
+        if "TensorrtExecutionProvider" in available:
+            providers.append("TensorrtExecutionProvider")
+        elif "CUDAExecutionProvider" in available:
+            providers.append("CUDAExecutionProvider")
+        providers.append("CPUExecutionProvider")  # Fallback
+
+        session = ort.InferenceSession(onnx_path, providers=providers)
         model = _OnnxModel(session)
         tokenizer = AutoTokenizer.from_pretrained("answerdotai/ModernBERT-base")
 
         _kompress_model = model
         _kompress_tokenizer = tokenizer
         _kompress_backend = "onnx"
-        logger.info("Kompress ONNX INT8 loaded (no torch dependency)")
+        logger.info("Kompress ONNX INT8 loaded on GPU (providers: %s)", providers)
         return model, tokenizer
 
 

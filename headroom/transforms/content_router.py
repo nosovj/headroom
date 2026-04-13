@@ -443,11 +443,11 @@ class ContentRouterConfig:
     # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
     # 
-    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.99
-    # min_ratio=0.99 means we ACCEPT any compression that keeps <= 99% (saves >= 1%)
-    # This accepts even marginal compression to maximize overall savings
-    min_ratio_relaxed: float = 0.99  # when context is mostly empty - accept <=99% ratio  
-    min_ratio_aggressive: float = 0.99  # when context is nearly full - accept <=99% ratio
+    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.999
+    # min_ratio=0.999 means we ACCEPT any compression that keeps <= 99.9% (saves >= 0.1%)
+    # This accepts almost everything to maximize savings
+    min_ratio_relaxed: float = 0.999  # when context is mostly empty - accept <=99.9% ratio  
+    min_ratio_aggressive: float = 0.999  # when context is nearly full - accept <=99.9% ratio
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression
@@ -1209,8 +1209,8 @@ class ContentRouter(Transform):
                         compressed_tokens = len(compressed.split()) if compressed else 0
 
             elif strategy == CompressionStrategy.KOMPRESS:
-                # Use 0.02 target for 98% compression on eligible blocks
-                effective_target = target_ratio or 0.02  # Sweet spot for 80%+ target
+                # Use 0.01 target for 99% compression on eligible blocks
+                effective_target = target_ratio or 0.01  # Ultra-aggressive for 80%+ target
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:

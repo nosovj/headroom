@@ -2295,8 +2295,9 @@ class ContentRouter(Transform):
 
                 tool_content = block.get("content", "")
 
-                # Only process string content
-                if isinstance(tool_content, str) and len(tool_content) > 500:
+                # Only process string content longer than 100 chars
+                # Lowered from 500 to compress more small tool outputs
+                if isinstance(tool_content, str) and len(tool_content) > 100:
                     # Compression pinning: skip already-compressed content
                     if (
                         "Retrieve more: hash=" in tool_content

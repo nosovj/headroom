@@ -444,11 +444,11 @@ class ContentRouterConfig:
     # We now accept almost any compression to maximize token savings.
     # min_ratio means "keep this fraction" - lower = more compression.
     # 
-    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.5
-    # min_ratio=0.5 means we REJECT compressions that keep >50% (save <50%)
-    # This filters out terrible compressions that drag down the average
-    min_ratio_relaxed: float = 0.5  # Reject if ratio > 0.5 (savings < 50%)
-    min_ratio_aggressive: float = 0.5  # Reject if ratio > 0.5 (savings < 50%)
+    # IMPORTANT: For 80%+ savings target, we use min_ratio=0.999
+    # min_ratio=0.999 means we ACCEPT any compression that keeps <= 99.9% (saves >= 0.1%)
+    # This accepts almost everything to maximize savings
+    min_ratio_relaxed: float = 0.999  # when context is mostly empty - accept <=99.9% ratio  
+    min_ratio_aggressive: float = 0.999  # when context is nearly full - accept <=99.9% ratio
 
     # CCR (Compress-Cache-Retrieve) settings for SmartCrusher
     ccr_enabled: bool = True  # Enable CCR marker injection for reversible compression

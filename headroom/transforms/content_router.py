@@ -36,6 +36,7 @@ Pipeline Usage:
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import os
 import re
@@ -700,6 +701,15 @@ class ContentRouter(Transform):
             'rust_fallback_count': 0,
         }
 
+        # Sample counter for compression quality logging (every Nth high-compression event)
+        self._sample_counter = 0
+
+        # Sample log file for quality review
+        self._sample_log_path = os.environ.get(
+            "HEADROOM_SAMPLE_LOG",
+            "/home/joe/.headroom/compression_samples.jsonl"
+        )
+
         # MinHash LSH index for deduplication (session-scoped)
         self._minhash_index: Any = None
         self._minhash_threshold = float(os.environ.get("HEADROOM_SIMILARITY_THRESHOLD", "0.95"))
@@ -761,6 +771,49 @@ class ContentRouter(Transform):
         self._minhash_index = None
         self._dedup_cache.clear()
         logger.debug("Session data cleared")
+
+    def _log_compression_sample(
+        self,
+        content_key: int,
+        result: Any,
+        original_content: str,
+        compression_pct: float
+    ) -> None:
+        """Log compression sample for quality review.
+
+        Every 20th high-compression event (>=70%) is logged to a JSONL file
+        for manual inspection of compression quality.
+        """
+        try:
+            # Truncate content for logging (first 500 chars each)
+            sample = {
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "content_key": content_key,
+                "strategy": result.strategy_used.value,
+                "compression_pct": compression_pct,
+                "original_tokens": result.total_original_tokens,
+                "compressed_tokens": result.total_compressed_tokens,
+                "ratio": result.compression_ratio,
+                # First 500 chars of original
+                "original_preview": original_content[:500],
+                # First 500 chars of compressed
+                "compressed_preview": result.compressed[:500] if result.compressed else "",
+            }
+
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self._sample_log_path), exist_ok=True)
+
+            with open(self._sample_log_path, "a") as f:
+                f.write(json.dumps(sample) + "\n")
+
+            logger.debug(
+                "Compression sample logged: %.1f%% saved, %d->%d tokens",
+                compression_pct,
+                result.total_original_tokens,
+                result.total_compressed_tokens
+            )
+        except Exception as e:
+            logger.warning("Failed to log compression sample: %s", e)
 
     def get_health(self) -> dict[str, Any]:
         """Get compressor health stats for monitoring.
@@ -1556,8 +1609,8 @@ class ContentRouter(Transform):
                 from .kompress_compressor import KompressCompressor, KompressConfig, is_kompress_available
 
                 if is_kompress_available():
-                    # Disable CCR markers to avoid inflation on small content
-                    config = KompressConfig(enable_ccr=False)
+                    # Enable CCR markers for recovery of compressed content
+                    config = KompressConfig(enable_ccr=True)
                     self._kompress = KompressCompressor(config)
             except ImportError:
                 logger.debug("Kompress dependencies not available")
@@ -2037,6 +2090,16 @@ class ContentRouter(Transform):
                         min_ratio,
                         int(result.total_original_tokens - result.total_compressed_tokens),
                     )
+                    # Sample logging: log every 20th high-compression event for quality review
+                    compression_pct = (1.0 - result.compression_ratio) * 100
+                    if compression_pct >= 70 and self._sample_counter % 20 == 0:
+                        self._log_compression_sample(
+                            content_key,
+                            result,
+                            task_content,
+                            compression_pct
+                        )
+                    self._sample_counter += 1
                 else:
                     # Didn't compress — add to skip set
                     self._cache.mark_skip(content_key)

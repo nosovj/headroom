@@ -1209,13 +1209,12 @@ class ContentRouter(Transform):
                         compressed_tokens = len(compressed.split()) if compressed else 0
 
             elif strategy == CompressionStrategy.KOMPRESS:
-                # Use 0.08 target for 92% compression on eligible blocks
-                effective_target = target_ratio or 0.02  # Back to sweet spot: 98% compression
+                # Use 0.02 target for 98% compression on eligible blocks
+                effective_target = target_ratio or 0.02  # Sweet spot for 80%+ target
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:
                 # Use min_ratio directly as target for Kompress
-                # Don't multiply by 0.01 - that makes target too aggressive
                 effective_target = target_ratio or self.config.min_ratio_aggressive
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 

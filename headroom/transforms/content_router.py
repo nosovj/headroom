@@ -1194,8 +1194,8 @@ class ContentRouter(Transform):
                         result = compressor.compress(content, language=language, context=context)
                         compressed, compressed_tokens = result.compressed, result.compressed_tokens
                 if compressed is None:
-                    # Fallback to Kompress with min_ratio target
-                    effective_target = self.config.min_ratio_aggressive
+                    # Fallback to Kompress with ultra-aggressive target
+                    effective_target = 0.01  # 99% compression for fallback
                     compressed, compressed_tokens = self._try_ml_compressor(
                         content, context, question, effective_target
                     )
@@ -1214,8 +1214,8 @@ class ContentRouter(Transform):
                                 "SmartCrusher skipped (strategy=%s), falling back to Kompress",
                                 crush_result.strategy,
                             )
-                            # Fallback to Kompress with min_ratio target
-                            effective_target = self.config.min_ratio_aggressive
+                            # Fallback to Kompress with ultra-aggressive target
+                            effective_target = 0.01  # 99% compression for fallback
                             compressed, compressed_tokens = self._try_ml_compressor(
                                 content, context, question, target_ratio=effective_target
                             )
@@ -1262,13 +1262,13 @@ class ContentRouter(Transform):
                         compressed_tokens = len(compressed.split()) if compressed else 0
 
             elif strategy == CompressionStrategy.KOMPRESS:
-                # Use 0.02 target for 98% compression on eligible blocks
-                effective_target = target_ratio or 0.02  # Sweet spot for 80%+ target
+                # Use 0.01 target for 99% compression on eligible blocks
+                effective_target = target_ratio or 0.01  # Ultra-aggressive for 80%+ target
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
             elif strategy == CompressionStrategy.TEXT:
-                # Use min_ratio directly as target for Kompress
-                effective_target = target_ratio or self.config.min_ratio_aggressive
+                # Use 0.01 target for Kompress (more aggressive)
+                effective_target = target_ratio or 0.01  # Was 0.999, now ultra-aggressive
                 compressed, compressed_tokens = self._try_ml_compressor(content, context, question, effective_target)
 
         except Exception as e:
